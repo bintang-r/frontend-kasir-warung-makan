@@ -1,26 +1,27 @@
 <template>
   <transition
-    enter-active-class="transform ease-out duration-300 transition"
-    enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-    enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-    leave-active-class="transition ease-in duration-100"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0"
+    enter-active-class="transform transition duration-500 ease-out"
+    enter-from-class="translate-y-10 opacity-0 scale-95"
+    enter-to-class="translate-y-0 opacity-100 scale-100"
+    leave-active-class="transform transition duration-300 ease-in"
+    leave-from-class="translate-y-0 opacity-100 scale-100"
+    leave-to-class="translate-y-10 opacity-0 scale-95"
   >
-    <div v-if="show" class="fixed top-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-4 z-50 flex items-center p-4 mb-4 w-full max-w-xs text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
-      <div v-if="type === 'success'" class="inline-flex flex-shrink-0 justify-center items-center w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
-        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-        <span class="sr-only">Check icon</span>
+    <div v-if="visible" class="fixed bottom-32 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-48px)] max-w-xs">
+      <div 
+        class="rounded-2xl p-4 shadow-premium flex items-center gap-3 border backdrop-blur-md"
+        :class="type === 'success' ? 'bg-accent/90 border-accent/20 text-white' : 'bg-red-600/90 border-red-500/20 text-white'"
+      >
+        <div class="bg-white/20 p-1.5 rounded-lg">
+          <svg v-if="type === 'success'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+           <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+        </div>
+        <p class="text-xs font-bold tracking-wide uppercase">{{ message }}</p>
       </div>
-      <div v-else-if="type === 'error'" class="inline-flex flex-shrink-0 justify-center items-center w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
-        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-        <span class="sr-only">Error icon</span>
-      </div>
-      <div class="ml-3 text-sm font-normal">{{ message }}</div>
-      <button @click="close" type="button" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
-        <span class="sr-only">Close</span>
-        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-      </button>
     </div>
   </transition>
 </template>
@@ -28,31 +29,19 @@
 <script setup>
 import { ref } from 'vue';
 
-const show = ref(false);
+const visible = ref(false);
 const message = ref('');
 const type = ref('success');
 
-let timer = null;
-
-const display = (msg, msgType = 'success', duration = 3000) => {
+const display = (msg, t = 'success') => {
   message.value = msg;
-  type.value = msgType;
-  show.value = true;
+  type.value = t;
+  visible.value = true;
   
-  if (timer) clearTimeout(timer);
-  
-  timer = setTimeout(() => {
-    close();
-  }, duration);
+  setTimeout(() => {
+    visible.value = false;
+  }, 3000);
 };
 
-const close = () => {
-  show.value = false;
-};
-
-// Expose the display function so parent components or composables can call it
-defineExpose({
-  display,
-  close
-});
+defineExpose({ display });
 </script>

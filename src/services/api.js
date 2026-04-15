@@ -23,7 +23,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+    
+    if (error.response?.status === 401 && !isAuthPage) {
       localStorage.removeItem('token');
       localStorage.removeItem('guest_token');
       window.location.href = '/login';

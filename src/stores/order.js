@@ -6,9 +6,14 @@ export const useOrderStore = defineStore('order', () => {
   const currentOrder = ref(null);
   const orderHistory = ref([]);
 
-  const placeOrder = async (cartId, orderType) => {
+  const placeOrder = async (cartId, orderType, address, tableId) => {
     try {
-      const response = await api.post('/orders', { cartId: cartId.toString(), orderType });
+      const response = await api.post('/orders', { 
+        cartId: cartId.toString(), 
+        orderType,
+        address,
+        tableId: tableId ? tableId.toString() : undefined
+      });
       currentOrder.value = response.data;
       return currentOrder.value;
     } catch (e) {
@@ -36,11 +41,49 @@ export const useOrderStore = defineStore('order', () => {
     }
   };
 
+  const confirmReceived = async (orderId) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/received`);
+      currentOrder.value = response.data;
+      return response.data;
+    } catch (e) {
+      console.error('Error confirming receipt', e);
+      throw e;
+    }
+  };
+
+  const submitReview = async (orderId, rating, comment) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/review`, { rating, comment });
+      return response.data;
+    } catch (e) {
+      console.error('Error submitting review', e);
+      throw e;
+    }
+  };
+
+  const processPayment = async (orderId, method, amount) => {
+    try {
+      const response = await api.post('/payments/process', { 
+        orderId: orderId.toString(), 
+        method, 
+        amount 
+      });
+      return response.data;
+    } catch (e) {
+      console.error('Error processing payment', e);
+      throw e;
+    }
+  };
+
   return {
     currentOrder,
     orderHistory,
     placeOrder,
     fetchOrderHistory,
-    getOrderById
+    getOrderById,
+    confirmReceived,
+    submitReview,
+    processPayment
   };
 });

@@ -8,11 +8,29 @@
     </button>
 
     <div class="mt-8">
-      <h1 class="text-4xl font-black text-gray-900 tracking-tight">Selamat <span class="text-primary">Datang</span></h1>
-      <p class="text-gray-400 font-bold mt-2 text-sm uppercase tracking-widest">Silakan masuak untuak mamasan</p>
+      <h1 class="text-4xl font-black text-gray-900 tracking-tight">Daftar <span class="text-primary">Akun</span></h1>
+      <p class="text-gray-400 font-bold mt-2 text-sm uppercase tracking-widest">Bagabung jo RM Siantar Minang</p>
     </div>
 
-    <form @submit.prevent="handleLogin" class="mt-12 flex flex-col gap-6">
+    <form @submit.prevent="handleRegister" class="mt-12 flex flex-col gap-5">
+      <div class="space-y-2">
+        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Full Name</label>
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.105a8.25 8.25 0 0115.782 0l0 .01a.75.75 0 01-.437.695A18.682 18.682 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" />
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            v-model="name" 
+            placeholder="Namo langkok dunsanak"
+            class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:bg-white focus:border-primary outline-none transition-all"
+            required 
+          />
+        </div>
+      </div>
+
       <div class="space-y-2">
         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email Address</label>
         <div class="relative group">
@@ -42,19 +60,11 @@
           <input 
             type="password" 
             v-model="password" 
-            placeholder="••••••••"
+            placeholder="Buat password minimal 6 karakter"
             class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:bg-white focus:border-primary outline-none transition-all"
             required 
           />
         </div>
-      </div>
-
-      <div class="flex justify-between items-center px-2">
-        <label class="flex items-center gap-2 cursor-pointer group">
-          <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
-          <span class="text-xs font-bold text-gray-400 group-hover:text-gray-600 transition-colors">Ingat saya</span>
-        </label>
-        <button type="button" class="text-xs font-black text-primary uppercase tracking-wider">Lupo Password?</button>
       </div>
 
       <button 
@@ -63,12 +73,12 @@
         class="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-premium hover:bg-primary-dark transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 active:scale-95 mt-4"
       >
         <div v-if="isLoading" class="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-        <span>{{ isLoading ? 'Loading...' : 'Masuak Kini' }}</span>
+        <span>{{ isLoading ? 'Mendaftarkan...' : 'Daftar Sekarang' }}</span>
       </button>
     </form>
 
     <div class="mt-auto pb-12 text-center">
-      <p class="text-gray-400 font-bold text-sm">Alun punyo akun? <router-link to="/register" class="text-primary font-black ml-1 uppercase tracking-wider underline underline-offset-4">Daftar Siko</router-link></p>
+      <p class="text-gray-400 font-bold text-sm">Alah punyo akun? <router-link to="/login" class="text-primary font-black ml-1 uppercase tracking-wider underline underline-offset-4">Masuak Siko</router-link></p>
     </div>
 
     <NotificationToast ref="toast" />
@@ -77,34 +87,41 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import api from '../services/api';
 import NotificationToast from '../components/NotificationToast.vue';
 
 const router = useRouter();
-const route = useRoute();
 const authStore = useAuthStore();
 
+const name = ref('');
 const email = ref('');
 const password = ref('');
 const isLoading = ref(false);
 const toast = ref(null);
 
-const handleLogin = async () => {
+const handleRegister = async () => {
+  if (password.value.length < 6) {
+    toast.value?.display('Password minimal 6 karakter dunsanak.', 'error');
+    return;
+  }
+
   isLoading.value = true;
   try {
-    const success = await authStore.login(email.value, password.value);
-    if (success) {
-      toast.value?.display('Salamaik Datang dunsanak!');
-      const redirectPath = route.query.redirect || '/';
-      setTimeout(() => {
-        router.push(redirectPath);
-      }, 1000);
-    } else {
-      toast.value?.display('Email atau password salah dunsanak.', 'error');
-    }
+    const response = await api.post('/auth/register', {
+      name: name.value,
+      email: email.value,
+      password: password.value
+    });
+    
+    toast.value?.display('Akun barhasil dibuek! Silakan masuak.');
+    setTimeout(() => {
+      router.push('/login');
+    }, 1500);
   } catch (err) {
-    toast.value?.display('Tajadi kasalahan, cubo baliak.', 'error');
+    const message = err.response?.data?.message || 'Gagal mendaftar, cubo email lain.';
+    toast.value?.display(message, 'error');
   } finally {
     isLoading.value = false;
   }
