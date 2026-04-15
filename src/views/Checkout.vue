@@ -167,6 +167,24 @@
                 <path d="M4.5 3.75a.75.75 0 000 1.5h15a.75.75 0 000-1.5h-15zM4.5 18.75a.75.75 0 000 1.5h15a.75.75 0 000-1.5h-15zM4.5 11.25a.75.75 0 000 1.5h15a.75.75 0 000-1.5h-15z" />
               </svg>
             </div>
+
+            <!-- Detailed Item List -->
+            <div class="mb-8 relative z-10">
+              <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest mb-4">Rincian Pesanan</h3>
+              <div class="space-y-4 max-h-48 overflow-y-auto pr-2 scrollbar-hide">
+                <div v-for="item in cartStore.items" :key="item.id" class="flex justify-between items-center text-sm">
+                  <div class="flex items-center gap-3">
+                    <img :src="item.menu?.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=80'" class="w-10 h-10 rounded-xl object-cover shadow-sm" />
+                    <div>
+                      <p class="font-bold text-gray-900 leading-none mb-1">{{ item.menu?.name }}</p>
+                      <p class="text-[10px] font-black text-primary uppercase tracking-widest">{{ cartStore.getQty(item) }}x @ Rp {{ formatPrice(item.menu?.price) }}</p>
+                    </div>
+                  </div>
+                  <p class="font-black text-gray-900">Rp {{ formatPrice(Number(item.menu?.price || 0) * cartStore.getQty(item)) }}</p>
+                </div>
+              </div>
+            </div>
+
             <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest mb-4">Ringkasan Biaya</h3>
             <div class="flex justify-between items-end">
                <div>
@@ -212,8 +230,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import { useAuthStore } from '../stores/auth';
 import { useOrderStore } from '../stores/order';
@@ -235,7 +253,7 @@ const voucherSuccess = ref(false);
 const isSubmitting = ref(false);
 
 const totalPrice = computed(() => {
-  return cartStore.items.reduce((sum, item) => sum + (Number(item.menu?.price) * item.qty), 0);
+  return cartStore.items.reduce((sum, item) => sum + (Number(item.menu?.price || 0) * cartStore.getQty(item)), 0);
 });
 
 const applyVoucher = () => {
