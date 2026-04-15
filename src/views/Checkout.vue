@@ -214,7 +214,7 @@
     </div>
 
     <!-- Final CTA -->
-    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/80 backdrop-blur-xl border-t border-gray-100 p-6 z-40">
+    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/80 backdrop-blur-xl border-t border-gray-100 p-6 z-[110]">
       <button 
         @click="submitOrder" 
         :disabled="isSubmitting" 
