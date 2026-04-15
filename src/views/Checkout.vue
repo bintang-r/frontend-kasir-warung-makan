@@ -277,12 +277,6 @@ onMounted(() => {
     router.push('/cart');
     return;
   }
-
-  // Pre-check for Dine-In if coming from Scan QR
-  if (orderType.value === 'DINE_IN' && !authStore.tableId) {
-     toast.value?.display('Silakan scan QR Code meja dunsanak talabiah dahulu.', 'error');
-     setTimeout(() => router.push('/'), 2000);
-  }
 });
 
 const submitOrder = async () => {
@@ -306,20 +300,12 @@ const submitOrder = async () => {
     }
   }
 
-  // 2. Enforcement for Dine-In (Check Table ID)
-  if (orderType.value === 'DINE_IN' && !authStore.tableId) {
-    toast.value?.display('Meja dunsanak alun dikatahui. Silakan scan QR dakek meja.', 'error');
-    setTimeout(() => router.push('/'), 2000);
-    return;
-  }
-
   isSubmitting.value = true;
   try {
     const order = await orderStore.placeOrder(
       cartStore.id, 
       orderType.value, 
-      address.value || '',
-      authStore.tableId
+      address.value || ''
     );
     
     // Clear cart locally

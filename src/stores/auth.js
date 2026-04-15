@@ -6,7 +6,6 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user')) || null);
   const token = ref(localStorage.getItem('token') || null);
   const guestToken = ref(localStorage.getItem('guest_token') || null);
-  const tableId = ref(localStorage.getItem('table_id') || null);
 
   const isAuthenticated = computed(() => !!token.value);
   const isGuest = computed(() => !!guestToken.value);
@@ -38,11 +37,9 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user');
   };
 
-  const setGuestSession = (newGuestToken, newTableId) => {
+  const setGuestSession = (newGuestToken) => {
     guestToken.value = newGuestToken;
-    tableId.value = newTableId;
     localStorage.setItem('guest_token', newGuestToken);
-    localStorage.setItem('table_id', newTableId);
     
     // Clear user session if setting guest session
     logout();
@@ -50,16 +47,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   const clearGuestSession = () => {
     guestToken.value = null;
-    tableId.value = null;
     localStorage.removeItem('guest_token');
-    localStorage.removeItem('table_id');
   };
 
   return {
     user,
     token,
     guestToken,
-    tableId,
     isAuthenticated,
     isGuest,
     login,
