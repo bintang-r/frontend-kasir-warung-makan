@@ -3,9 +3,7 @@
     <!-- Header -->
     <div class="px-6 pt-12 pb-6 flex items-center gap-4 bg-white sticky top-0 z-30 border-b border-gray-100">
       <button @click="router.back()" class="p-2 -ml-2 text-gray-400 hover:text-primary transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
+         <i class="fa-solid fa-arrow-left"></i>
       </button>
       <h1 class="text-xl font-black text-gray-900 leading-none">Selesaikan <span class="text-primary">Order</span></h1>
     </div>
@@ -14,9 +12,7 @@
       <!-- Order Type Selection -->
       <section class="mb-8">
         <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581a2.25 2.25 0 003.182 0l4.318-4.318a2.25 2.25 0 000-3.182L11.159 3.659A2.25 2.25 0 009.568 3z" />
-          </svg>
+            <i class="fa-solid fa-utensils"></i>
            Metode Makan
         </h3>
         <div class="grid grid-cols-2 gap-3">
@@ -62,9 +58,7 @@
       <!-- Payment Method -->
       <section class="mb-8">
         <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75-3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5h15a2.25 2.25 0 002.25-2.25V14.25" />
-          </svg>
+            <i class="fa-solid fa-credit-card"></i>
            Metode Pembayaran
         </h3>
         <div class="space-y-3">
@@ -75,9 +69,7 @@
           >
             <div class="flex items-center gap-4">
               <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75m0 0a1.5 1.5 0 01-1.5 1.5H2.25M3.75 4.5h1.125c.621 0 1.125.504 1.125 1.125V6M3.75 4.5A1.5 1.5 0 002.25 6m10.5 0h.75m0 0a1.5 1.5 0 011.5 1.5V6m-1.5 0c-.621 0-1.125.504-1.125 1.125v.75m1.5-1.875a1.5 1.5 0 011.5 1.5v.75m-1.5-2.25H12m1.125 11.25c.621 0 1.125.504 1.125 1.125v.75m-1.125-1.875a1.5 1.5 0 00-1.5-1.5H12m1.125 3.375a1.5 1.5 0 011.5-1.5h1.125m-1.125 1.5v-.75m0 0a1.5 1.5 0 00-1.5-1.5H12" />
-                </svg>
+                <i class="fa-solid fa-money-bill-wave text-xl"></i>
               </div>
               <div>
                 <p class="font-bold text-gray-900 text-sm">Tunai / Bayar Ditempat</p>
@@ -96,9 +88,7 @@
           >
             <div class="flex items-center gap-4">
               <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                </svg>
+                <i class="fa-solid fa-wallet text-xl"></i>
               </div>
               <div>
                 <p class="font-bold text-gray-900 text-sm">e-Wallet</p>
@@ -116,9 +106,7 @@
       <section class="mb-8">
          <div class="bg-white rounded-3xl p-6 shadow-premium border border-gray-100 overflow-hidden relative">
             <div class="absolute top-0 right-0 p-6 opacity-5 rotate-12 pointer-events-none">
-               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-40 h-40">
-                <path d="M4.5 3.75a.75.75 0 000 1.5h15a.75.75 0 000-1.5h-15zM4.5 18.75a.75.75 0 000 1.5h15a.75.75 0 000-1.5h-15zM4.5 11.25a.75.75 0 000 1.5h15a.75.75 0 000-1.5h-15z" />
-              </svg>
+               <i class="fa-solid fa-receipt text-[120px]"></i>
             </div>
 
             <!-- Detailed Item List -->
@@ -158,9 +146,7 @@
       <!-- Tip Info -->
       <div class="bg-primary/5 rounded-2xl p-4 flex gap-4 items-start border border-primary/10">
          <div class="bg-primary/10 p-2 rounded-xl text-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
+            <i class="fa-solid fa-circle-info text-2xl"></i>
          </div>
          <p class="text-[11px] text-primary/80 font-medium leading-relaxed">Pastikan pesanan Anda sudah benar. Tekan tombol di bawah untuk masuk ke dapur RM Siantar Minang secara otomatis.</p>
       </div>
@@ -217,7 +203,7 @@ const applyVoucher = () => {
     voucherMessage.value = 'Hore! Diskon 10% barusan dipakai.';
   } else {
     voucherSuccess.value = false;
-    voucherMessage.value = 'Maaf, kode promo ko indak balaku.';
+    voucherMessage.value = 'Maaf, kode promo ini tidak berlaku.';
   }
 };
 
@@ -234,7 +220,7 @@ onMounted(() => {
 
 const submitOrder = async () => {
   if (!cartStore.id) {
-    toast.value?.display('Keranjang dunsanak alun ta-ID. Cubo refresh nante.', 'error');
+    toast.value?.display('Keranjang Anda belum memiliki ID. Silakan segarkan halaman.', 'error');
     return;
   }
   
@@ -252,7 +238,7 @@ const submitOrder = async () => {
     cartStore.clearCartLocally();
     
     // Success State
-    toast.value?.display('Pesanan dunsanak sadang diproses!');
+    toast.value?.display('Pesanan Anda sedang diproses!');
     
     setTimeout(() => {
       if (paymentMethod.value === 'CASH') {
@@ -266,7 +252,7 @@ const submitOrder = async () => {
     }, 1500);
   } catch (err) {
     console.error('Checkout error:', err);
-    toast.value?.display('Gagal mengirim pesanan, cubo baliak nante.', 'error');
+    toast.value?.display('Gagal mengirim pesanan, silakan coba kembali nanti.', 'error');
     isSubmitting.value = false;
   }
 };

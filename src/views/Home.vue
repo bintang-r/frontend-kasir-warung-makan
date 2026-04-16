@@ -4,8 +4,8 @@
 
     <!-- Welcome Message -->
     <div class="px-6 pt-6 pb-2">
-       <h2 class="text-sm font-black text-primary uppercase tracking-[0.2em]">Salamaik Datang</h2>
-       <p class="text-2xl font-black text-gray-900 leading-tight mt-1">Nio makan apo dunsanak hari ko?</p>
+       <h2 class="text-sm font-black text-primary uppercase tracking-[0.2em]">Selamat Datang</h2>
+       <p class="text-2xl font-black text-gray-900 leading-tight mt-1">Mau makan apa hari ini?</p>
     </div>
 
     <!-- Active Order Card -->
@@ -34,7 +34,7 @@
               <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                  <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
               </div>
-              <p class="text-xs font-bold text-white/80">Lacak perkembangan pesanan dunsanak...</p>
+              <p class="text-xs font-bold text-white/80">Lacak perkembangan pesanan Anda...</p>
            </div>
            <div class="text-white group-hover:translate-x-1 transition-transform">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
@@ -67,7 +67,7 @@
           >
             <img v-if="promo.image" :src="promo.image" alt="Promo" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-gray-300"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+              <i class="fa-solid fa-image text-5xl text-gray-300"></i>
             </div>
             <!-- Overlay Content (optional if Title exists) -->
             <div v-if="promo.title" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
@@ -139,7 +139,7 @@
     <!-- Local Info Card -->
     <div class="px-6 mt-10">
       <div class="bg-white rounded-3xl p-6 shadow-card border border-gray-100 overflow-hidden relative">
-        <h3 class="font-black text-gray-900 text-lg leading-tight">Makan Kenyang,<br/>Hati Sanang!</h3>
+        <h3 class="font-black text-gray-900 text-lg leading-tight">Makan Kenyang,<br/>Hati Senang!</h3>
         <p class="text-gray-500 text-xs mt-2 max-w-[160px]">Layanan dine-in kami menggunakan sistem pembayaran digital yang aman dan cepat.</p>
         <div class="mt-4 flex gap-4">
            <div class="flex flex-col">
@@ -148,7 +148,7 @@
            </div>
            <div class="flex flex-col border-l border-gray-100 pl-4">
              <span class="text-[10px] font-black uppercase text-gray-300">Rating</span>
-             <span class="text-xs font-bold text-gray-700">⭐ 4.9 (2k+)</span>
+             <span class="text-xs font-bold text-gray-700"><i class="fa-solid fa-star text-yellow-400 text-[10px] mr-1"></i> 4.9 (2k+)</span>
            </div>
         </div>
       </div>

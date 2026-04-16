@@ -13,12 +13,8 @@
         :class="type === 'success' ? 'bg-accent/90 border-accent/20 text-white' : 'bg-red-600/90 border-red-500/20 text-white'"
       >
         <div class="bg-white/20 p-1.5 rounded-lg">
-          <svg v-if="type === 'success'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-           <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-          </svg>
+          <i v-if="type === 'success'" class="fa-solid fa-check text-sm"></i>
+          <i v-else class="fa-solid fa-circle-exclamation text-sm"></i>
         </div>
         <p class="text-xs font-bold tracking-wide uppercase">{{ message }}</p>
       </div>

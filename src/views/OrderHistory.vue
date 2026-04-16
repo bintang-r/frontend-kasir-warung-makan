@@ -3,13 +3,11 @@
     <!-- Header -->
     <div class="px-6 pt-12 pb-6 bg-white sticky top-0 z-30 border-b border-gray-100 flex items-center justify-between">
       <div>
-        <h1 class="text-xl font-black text-gray-900 leading-none">Pesanan <span class="text-primary">Sayo</span></h1>
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Riwayat Makan Dunsanak</p>
+         <h1 class="text-xl font-black text-gray-900 leading-none">Pesanan <span class="text-primary">Saya</span></h1>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Riwayat Makan Anda</p>
       </div>
       <button @click="fetchOrders" :disabled="loading" class="bg-primary/10 p-2 rounded-xl text-primary active:scale-90 transition-all">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5" :class="{'animate-spin': loading}">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-        </svg>
+         <i class="fa-solid fa-rotate" :class="{'animate-spin': loading}"></i>
       </button>
     </div>
 
@@ -22,14 +20,12 @@
 
       <div v-else-if="!loading && orders.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
          <div class="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center text-gray-300 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-            </svg>
+             <i class="fa-solid fa-receipt text-6xl text-gray-300 mb-6"></i>
          </div>
-         <h3 class="font-black text-gray-900 border-none">Alun ado pesanan lai</h3>
-         <p class="text-xs text-gray-500 mt-2 max-w-[200px] leading-relaxed">Dunsanak alun mamasan makanan apo-apo. Silekan caliak menu kito dulu.</p>
+         <h3 class="font-black text-gray-900 border-none">Belum ada pesanan</h3>
+         <p class="text-xs text-gray-500 mt-2 max-w-[200px] leading-relaxed">Anda belum memesan makanan apa pun. Silakan lihat menu kami dulu.</p>
          <router-link to="/menu" class="mt-8 bg-primary text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-premium active:scale-95 transition-all">
-            Caliak Menu
+            Lihat Menu
          </router-link>
       </div>
 
@@ -85,9 +81,7 @@
              <div class="flex items-center gap-2">
                <span class="text-[9px] font-black text-gray-300 uppercase tracking-widest">{{ order.orderType }}</span>
                <div class="text-primary group-hover:translate-x-1 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+                  <i class="fa-solid fa-chevron-right text-sm"></i>
                </div>
              </div>
           </div>

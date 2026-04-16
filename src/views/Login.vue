@@ -2,14 +2,12 @@
   <div class="min-h-screen flex flex-col px-8 pt-12">
     <!-- Close Button -->
     <button @click="router.back()" class="self-start p-2 -ml-2 text-gray-400 hover:text-primary transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-      </svg>
+      <i class="fa-solid fa-xmark text-xl"></i>
     </button>
 
     <div class="mt-8">
       <h1 class="text-4xl font-black text-gray-900 tracking-tight">Selamat <span class="text-primary">Datang</span></h1>
-      <p class="text-gray-400 font-bold mt-2 text-sm uppercase tracking-widest">Silakan masuak untuak mamasan</p>
+      <p class="text-gray-400 font-bold mt-2 text-sm uppercase tracking-widest">Silakan masuk untuk memesan</p>
     </div>
 
     <form @submit.prevent="handleLogin" class="mt-12 flex flex-col gap-6">
@@ -17,9 +15,7 @@
         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email Address</label>
         <div class="relative group">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-            </svg>
+            <i class="fa-solid fa-envelope"></i>
           </div>
           <input 
             type="email" 
@@ -35,9 +31,7 @@
         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Password</label>
         <div class="relative group">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-            </svg>
+            <i class="fa-solid fa-lock"></i>
           </div>
           <input 
             type="password" 
@@ -54,7 +48,7 @@
           <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
           <span class="text-xs font-bold text-gray-400 group-hover:text-gray-600 transition-colors">Ingat saya</span>
         </label>
-        <button type="button" class="text-xs font-black text-primary uppercase tracking-wider">Lupo Password?</button>
+          <button type="button" class="text-xs font-black text-primary uppercase tracking-wider">Lupa Password?</button>
       </div>
 
       <button 
@@ -63,12 +57,12 @@
         class="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-premium hover:bg-primary-dark transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 active:scale-95 mt-4"
       >
         <div v-if="isLoading" class="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-        <span>{{ isLoading ? 'Loading...' : 'Masuak Kini' }}</span>
+        <span>{{ isLoading ? 'Memproses...' : 'Masuk Sekarang' }}</span>
       </button>
     </form>
 
     <div class="mt-auto pb-12 text-center">
-      <p class="text-gray-400 font-bold text-sm">Alun punyo akun? <router-link to="/register" class="text-primary font-black ml-1 uppercase tracking-wider underline underline-offset-4">Daftar Siko</router-link></p>
+      <p class="text-gray-400 font-bold text-sm">Belum punya akun? <router-link to="/register" class="text-primary font-black ml-1 uppercase tracking-wider underline underline-offset-4">Daftar Sini</router-link></p>
     </div>
 
     <NotificationToast ref="toast" />
@@ -95,16 +89,16 @@ const handleLogin = async () => {
   try {
     const success = await authStore.login(email.value, password.value);
     if (success) {
-      toast.value?.display('Salamaik Datang dunsanak!');
+      toast.value?.display('Selamat Datang!');
       const redirectPath = route.query.redirect || '/';
       setTimeout(() => {
         router.push(redirectPath);
       }, 1000);
     } else {
-      toast.value?.display('Email atau password salah dunsanak.', 'error');
+      toast.value?.display('Email atau password salah.', 'error');
     }
   } catch (err) {
-    toast.value?.display('Tajadi kasalahan, cubo baliak.', 'error');
+    toast.value?.display('Terjadi kesalahan, coba lagi.', 'error');
   } finally {
     isLoading.value = false;
   }

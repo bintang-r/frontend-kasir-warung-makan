@@ -42,9 +42,7 @@
             @click="cartStore.closeCart"
             class="p-2 bg-gray-50 text-gray-400 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
 
@@ -76,18 +74,14 @@
                     @click="cartStore.updateQuantity(item.id, cartStore.getQty(item) - 1)"
                     class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary transition-colors active:scale-90"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
-                    </svg>
+                    <i class="fa-solid fa-minus text-[10px]"></i>
                   </button>
                   <span class="w-8 text-center text-xs font-black text-gray-900">{{ cartStore.getQty(item) }}</span>
                   <button 
                     @click="cartStore.updateQuantity(item.id, cartStore.getQty(item) + 1)"
                     class="w-8 h-8 flex items-center justify-center text-primary hover:bg-white hover:shadow-sm rounded-lg transition-all active:scale-90"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
+                    <i class="fa-solid fa-plus text-[10px]"></i>
                   </button>
                 </div>
                 
@@ -95,9 +89,7 @@
                   @click="cartStore.removeItem(item.id)"
                   class="text-gray-300 hover:text-red-500 transition-colors p-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                  </svg>
+                  <i class="fa-solid fa-trash-can text-sm"></i>
                 </button>
               </div>
             </div>
@@ -105,12 +97,10 @@
 
           <div v-if="cartStore.items.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
             <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 mb-4">
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-              </svg>
+               <i class="fa-solid fa-bag-shopping text-5xl"></i>
             </div>
             <p class="font-bold text-gray-800">Keranjang Kosong</p>
-            <p class="text-xs text-gray-400 mt-1">Silekan cari menu pilihan dunsanak.</p>
+            <p class="text-xs text-gray-400 mt-1">Silakan cari menu pilihan Anda.</p>
           </div>
         </div>
 

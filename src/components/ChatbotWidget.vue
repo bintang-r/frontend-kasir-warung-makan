@@ -14,9 +14,7 @@
         <div class="bg-primary p-4 text-white flex justify-between items-center">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center border border-white/30">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.023c.09-.454-.05-.951-.378-1.34A9.19 9.19 0 013 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-              </svg>
+              <i class="fa-solid fa-robot text-xl"></i>
             </div>
             <div>
               <p class="font-bold text-sm">CS Siantar Minang</p>
@@ -24,9 +22,7 @@
             </div>
           </div>
           <button @click="toggleChat" class="hover:bg-white/10 p-1.5 rounded-xl transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
+            <i class="fa-solid fa-chevron-down"></i>
           </button>
         </div>
         
@@ -59,9 +55,7 @@
             class="bg-primary text-white rounded-2xl p-2.5 hover:bg-primary-dark transition-all disabled:opacity-50 active:scale-90" 
             :disabled="!inputText.trim() || isTyping"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-              <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-            </svg>
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
       </div>
@@ -73,12 +67,8 @@
       class="pointer-events-auto bg-primary text-white p-4 rounded-3xl shadow-premium hover:bg-primary-dark hover:-translate-y-1 transition-all duration-300 group ring-4 ring-white"
     >
       <div class="relative">
-        <svg v-if="!isOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-3.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-        </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <i v-if="!isOpen" class="fa-solid fa-comments text-2xl"></i>
+        <i v-else class="fa-solid fa-xmark text-2xl"></i>
         <span v-if="!isOpen" class="absolute -top-1 -right-1 flex h-3 w-3">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
           <span class="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
@@ -96,7 +86,7 @@ const isOpen = ref(false);
 const inputText = ref('');
 const isTyping = ref(false);
 const messages = ref([
-  { sender: 'bot', text: 'Halo dunsanak! Sanang basuo jo sanak. Ado nan bisa ambo bantu untuak mamiliah menu hari ko?' }
+  { sender: 'bot', text: 'Halo! Senang bertemu dengan Anda. Ada yang bisa saya bantu untuk memilih menu hari ini?' }
 ]);
 
 const toggleChat = () => {
@@ -129,7 +119,7 @@ const sendMessage = async () => {
     }, 800);
   } catch (e) {
     console.error('Failed to send text', e);
-    messages.value.push({ sender: 'bot', text: 'Maaf dunsanak, layanan chatbot sadang gangguan. Cubo baliak agak nante.' });
+    messages.value.push({ sender: 'bot', text: 'Maaf, layanan chatbot sedang gangguan. Coba lagi nanti.' });
     isTyping.value = false;
     scrollToBottom();
   }

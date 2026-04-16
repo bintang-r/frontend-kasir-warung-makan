@@ -3,13 +3,11 @@
     <!-- Header -->
     <div class="px-6 pt-12 pb-6 bg-white sticky top-0 z-30 border-b border-gray-100 flex items-center justify-between">
       <div>
-        <h1 class="text-xl font-black text-gray-900 leading-none">Profil <span class="text-primary">Ambo</span></h1>
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Kelola Akun Dunsanak</p>
+        <h1 class="text-xl font-black text-gray-900 leading-none">Profil <span class="text-primary">Saya</span></h1>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Kelola Akun Anda</p>
       </div>
       <button @click="handleLogout" class="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors">
-         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-        </svg>
+         <i class="fa-solid fa-right-from-bracket text-xl"></i>
       </button>
     </div>
 
@@ -45,7 +43,7 @@
                 v-model="form.name"
                 type="text" 
                 class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 text-sm font-bold transition-all"
-                placeholder="Namo sanak..."
+                placeholder="Nama Anda..."
               />
            </div>
 
@@ -56,7 +54,7 @@
                 v-model="form.email"
                 type="email" 
                 class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 text-sm font-bold transition-all"
-                placeholder="Email sanak..."
+                placeholder="Email Anda..."
               />
            </div>
 
@@ -69,7 +67,7 @@
                 class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 text-sm font-bold transition-all"
                 placeholder="••••••••"
               />
-              <p class="text-[9px] text-gray-400 mt-2 px-1 italic">Kosongan se kalau indak nio ganti password.</p>
+              <p class="text-[9px] text-gray-400 mt-2 px-1 italic">Kosongkan saja jika tidak ingin ganti password.</p>
            </div>
         </div>
 
@@ -79,7 +77,7 @@
           :disabled="loading"
           class="w-full bg-gray-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all disabled:opacity-50"
         >
-          <span v-if="!loading">Simpan Parubahan</span>
+          <span v-if="!loading">Simpan Perubahan</span>
           <span v-else class="flex items-center justify-center gap-2">
              <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
              Menyimpan...
@@ -148,7 +146,7 @@ const handleUpdate = async () => {
     authStore.user = updatedUser;
     localStorage.setItem('user', JSON.stringify(updatedUser));
     
-    toast.value = 'Profil alah berhasil diupdate! ✨';
+    toast.value = 'Profil berhasil diperbarui! ✨';
     form.password = '';
     setTimeout(() => toast.value = '', 3000);
   } catch (e) {

@@ -5,9 +5,7 @@
       <div class="px-6 pt-12 pb-6 flex items-center justify-between bg-white sticky top-0 z-30 border-b border-gray-100">
         <div class="flex items-center gap-4">
           <button @click="router.push('/')" class="p-2 -ml-2 text-gray-400 hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
+            <i class="fa-solid fa-arrow-left"></i>
           </button>
           <h1 class="text-xl font-black text-gray-900 leading-none">Status <span class="text-primary">Order</span></h1>
         </div>
@@ -36,17 +34,11 @@
                <p class="text-sm mt-4 text-white/80 font-medium leading-relaxed max-w-xs">{{ getStatusDescription(order.status) }}</p>
             </div>
            
-           <div class="absolute -right-6 -bottom-6 opacity-20 pointer-events-none scale-150 animate-float">
-              <svg v-if="order.status === 'COOKING'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48 animate-cook">
-                 <path d="M11.03 3.97a.75.75 0 0 1 0 1.06l-6.22 6.22H21a.75.75 0 0 1 0 1.5H4.81l6.22 6.22a.75.75 0 1 1-1.06 1.06l-7.5-7.5a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 0Z" />
-              </svg>
-              <svg v-else-if="['PENDING', 'CONFIRMED'].includes(order.status)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48">
-                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48">
-                 <path fill-rule="evenodd" d="M19.916 4.351a.75.75 0 01.274 1.023l-10.5 15a.75.75 0 01-1.12.115l-6-6a.75.75 0 111.06-1.06l5.353 5.353 9.91-14.157a.75.75 0 011.023-.274z" clip-rule="evenodd" />
-              </svg>
-           </div>
+            <div class="absolute -right-6 -bottom-6 opacity-20 pointer-events-none scale-150 animate-float">
+               <i v-if="order.status === 'COOKING'" class="fa-solid fa-fire-burner text-[160px] animate-cook"></i>
+               <i v-else-if="['PENDING', 'CONFIRMED'].includes(order.status)" class="fa-solid fa-clock text-[160px]"></i>
+               <i v-else class="fa-solid fa-check-circle text-[160px]"></i>
+            </div>
         </div>
 
 
@@ -54,22 +46,20 @@
         <!-- Review Section -->
         <div v-if="order.status === 'COMPLETED' && !order.reviews?.length" class="mt-8 animate-down">
            <div class="bg-gray-50 rounded-3xl p-8 border-2 border-primary/10">
-              <h3 class="text-xl font-black text-gray-900 text-center">Rancak Bana!</h3>
-              <p class="text-sm text-gray-500 text-center mt-2 font-medium">Ba'a rasonyo makan dunsanak? Kasiah ulasan untuak kami.</p>
+              <h3 class="text-xl font-black text-gray-900 text-center">Mantap Sekali!</h3>
+              <p class="text-sm text-gray-500 text-center mt-2 font-medium">Bagaimana rasa makanannya? Berikan ulasan bagi kami.</p>
               
               <!-- Stars -->
               <div class="flex justify-center gap-2 mt-6">
                  <button v-for="i in 5" :key="i" @click="rating = i" class="transition-transform active:scale-125">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" :fill="i <= rating ? '#E31E24' : '#E5E7EB'" class="w-10 h-10">
-                       <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-star text-4xl" :class="i <= rating ? 'text-primary' : 'text-gray-200'"></i>
                  </button>
               </div>
 
               <!-- Comment -->
               <textarea 
                 v-model="comment" 
-                placeholder="Kasiah komentar menarik dunsanak di siko..."
+                placeholder="Berikan komentar menarik Anda di sini..."
                 class="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-sm focus:border-primary outline-none transition-all h-24 mt-6 font-medium"
               ></textarea>
 
@@ -85,13 +75,11 @@
 
         <div v-if="order.reviews?.length" class="mt-8 bg-accent/5 rounded-3xl p-6 border border-accent/10 flex items-center gap-4">
            <div class="bg-accent/10 p-3 rounded-2xl text-accent">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
-              </svg>
+              <i class="fa-solid fa-star text-xl"></i>
            </div>
            <div>
-              <p class="font-black text-gray-900 text-sm">Tarimo kasih ulasannyo!</p>
-              <p class="text-xs text-gray-500 font-medium">Ulasan dunsanak alah kami tarimo.</p>
+              <p class="font-black text-gray-900 text-sm">Terima kasih ulasannya!</p>
+              <p class="text-xs text-gray-500 font-medium">Ulasan Anda sudah kami terima.</p>
            </div>
         </div>
 
@@ -110,9 +98,7 @@
               <!-- Dot -->
               <div class="absolute left-0 top-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500"
                 :class="isStepReached(step.key) ? (order.status === step.key ? 'bg-primary timeline-dot-active' : 'bg-primary shadow-sm') : 'bg-gray-100 ring-4 ring-transparent'">
-                <svg v-if="isStepReached(step.key)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor" class="w-3 h-3 text-white">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+                <i v-if="isStepReached(step.key)" class="fa-solid fa-check text-[10px] text-white"></i>
                 <div v-else class="w-2 h-2 rounded-full bg-gray-300"></div>
               </div>
               
@@ -130,9 +116,7 @@
            
            <div class="flex justify-between items-center mb-8 relative z-10">
               <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-primary">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                 </svg>
+                 <i class="fa-solid fa-bag-shopping text-primary"></i>
                  Rincian Order
               </h3>
               <span class="bg-primary/10 text-primary text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border border-primary/10">{{ order.orderType }}</span>
@@ -158,26 +142,16 @@
               <span class="text-2xl font-black text-primary drop-shadow-sm">Rp {{ formatPrice(order.totalPrice) }}</span>
            </div>
         </div>
-
-        <!-- Help Button -->
-        <div class="mb-12 text-center">
-           <button class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-gray-100 shadow-sm text-[11px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95 group">
-              <span class="w-2 h-2 rounded-full bg-primary group-hover:animate-ping"></span>
-              Butuh Bantuan Staff?
-           </button>
-        </div>
       </div>
       
       <div v-else class="flex flex-col items-center justify-center py-32 flex-1 px-6 text-center">
-         <div class="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center text-gray-300 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008h-.008v-.008z" />
-            </svg>
-         </div>
-         <h3 class="text-lg font-black text-gray-900 border-none">Pesanan Indak Ditamukan</h3>
-         <p class="text-sm text-gray-500 mt-2 leading-relaxed">Maaf dunsanak, pesanan jo ID ko indak ado atau dunsanak indak punyo akses.</p>
+          <div class="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center text-gray-300 mb-6">
+             <i class="fa-solid fa-circle-exclamation text-4xl"></i>
+          </div>
+         <h3 class="text-lg font-black text-gray-900 border-none">Pesanan Tidak Ditemukan</h3>
+         <p class="text-sm text-gray-500 mt-2 leading-relaxed">Maaf, pesanan dengan ID ini tidak ditemukan atau Anda tidak memiliki akses.</p>
          <button @click="router.push('/')" class="mt-8 bg-gray-900 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-            Baliak ka Home
+            Kembali ke Home
          </button>
       </div>
 
@@ -231,7 +205,7 @@ const submitReview = async () => {
   isUpdating.value = true;
   try {
     await orderStore.submitReview(orderId.value, rating.value, comment.value);
-    toast.value?.display('Tarimo kasih atas ulasannyo!');
+    toast.value?.display('Terima kasih atas ulasannya!');
     await fetchOrder();
   } catch (err) {
     toast.value?.display('Gagal mengirim ulasan.', 'error');
@@ -272,21 +246,21 @@ const getStatusBadge = (status) => {
 
 const getStatusTitle = (status) => {
   switch (status) {
-    case 'PENDING': return 'Saba Dulu dunsanak';
+    case 'PENDING': return 'Mohon Tunggu Sebentar';
     case 'COOKING': return 'Sedang Dimasak';
-    case 'READY': return 'Alah Siap! Silakan Santap';
-    case 'COMPLETED': return 'Kanyang Sanak? Rancak!';
-    default: return 'Pesanan Dunsanak';
+    case 'READY': return 'Sudah Siap! Silakan Santap';
+    case 'COMPLETED': return 'Kenyang? Mantap!';
+    default: return 'Pesanan Anda';
   }
 };
 
 const getStatusDescription = (status) => {
   switch (status) {
-    case 'PENDING': return 'Pesanan dunsanak alah masuak antrian dapur.';
-    case 'COOKING': return 'Koki kami sadang fokus mamasak rendang favorit sanak.';
-    case 'READY': return 'Pesanan alah panuah di meja saji, siap disantap.';
-    case 'COMPLETED': return 'Makan dunsanak alah salasai, tarimo kasih dunsanak.';
-    default: return 'Sadang mamproses status tabaru...';
+    case 'PENDING': return 'Pesanan Anda sudah masuk antrean dapur.';
+    case 'COOKING': return 'Koki kami sedang fokus memasak hidangan favorit Anda.';
+    case 'READY': return 'Pesanan sudah siap di meja saji, siap disantap.';
+    case 'COMPLETED': return 'Makan Anda sudah selesai, terima kasih.';
+    default: return 'Sedang memproses status terbaru...';
   }
 };
 

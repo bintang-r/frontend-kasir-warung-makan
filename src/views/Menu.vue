@@ -5,9 +5,7 @@
       <div class="px-6 pt-12 pb-4">
         <div class="flex items-center gap-4">
           <button @click="router.push('/')" class="p-2 -ml-2 text-gray-400 hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
+             <i class="fa-solid fa-arrow-left"></i>
           </button>
           <div class="flex-1 relative">
             <input 
@@ -16,9 +14,7 @@
               placeholder="Cari Rendang, Ayam..." 
               class="w-full bg-gray-100 rounded-2xl py-2.5 pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all border-none"
             />
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
+            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
           </div>
         </div>
 
@@ -61,12 +57,10 @@
 
       <div v-else class="flex flex-col items-center justify-center py-20 text-center">
         <div class="bg-gray-100 p-6 rounded-full text-gray-300 mb-4">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
+           <i class="fa-solid fa-search text-5xl"></i>
         </div>
         <h3 class="font-bold text-gray-800">Menu tidak ditemukan</h3>
-        <p class="text-sm text-gray-400 mt-1">Coba kata kunci lain dunsanak.</p>
+        <p class="text-sm text-gray-400 mt-1">Coba kata kunci lain.</p>
       </div>
     </div>
 
