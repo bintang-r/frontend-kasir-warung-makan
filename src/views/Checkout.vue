@@ -22,15 +22,11 @@
              :class="orderType === 'DINE_IN' ? 'border-primary shadow-premium' : 'border-gray-100 opacity-60'"
            >
               <div class="bg-primary/10 w-8 h-8 rounded-xl flex items-center justify-center text-primary mb-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-                 </svg>
+                 <i class="fa-solid fa-shop text-xl"></i>
               </div>
               <p class="font-bold text-gray-900 text-[10px]">Dine-In</p>
               <div v-if="orderType === 'DINE_IN'" class="absolute -top-1 -right-1 bg-primary text-white p-1 rounded-full shadow-lg">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-2.5 h-2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+                 <i class="fa-solid fa-check text-[8px]"></i>
               </div>
            </div>
            
@@ -40,14 +36,10 @@
              :class="orderType === 'TAKEAWAY' ? 'border-primary shadow-premium' : 'border-gray-100 opacity-60'"
            >
               <div class="bg-secondary/10 w-8 h-8 rounded-xl flex items-center justify-center text-secondary mb-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                </svg>
+                 <i class="fa-solid fa-bag-shopping text-xl"></i>
               </div>
               <p class="font-bold text-gray-900 text-[10px]">Bungkus</p>
               <div v-if="orderType === 'TAKEAWAY'" class="absolute -top-1 -right-1 bg-primary text-white p-1 rounded-full shadow-lg">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-2.5 h-2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </div>
            </div>
