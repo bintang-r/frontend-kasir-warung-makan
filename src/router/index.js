@@ -160,7 +160,13 @@ router.beforeEach((to, from, next) => {
   // 1. Handling Public/Universal Login paths
   if (to.name === 'Login' || to.name === 'Register' || to.name === 'Home') {
     if (isAuthenticated) {
-      if (isStaff) return next({ path: `/staff/${userRole.toLowerCase()}` });
+      const rolePathMap = {
+        ADMIN: '/staff/admin',
+        KASIR: '/staff/cashier',
+        KITCHEN: '/staff/kitchen',
+        DRIVER: '/staff/admin', // fallback
+      };
+      if (isStaff) return next({ path: rolePathMap[userRole] || '/staff/admin' });
       if (to.name !== 'Home') return next({ name: 'Menu' });
     }
     return next();
@@ -173,8 +179,13 @@ router.beforeEach((to, from, next) => {
 
     // Strict sub-role checking
     if (to.meta.role && userRole !== to.meta.role) {
-       // Automatic redirect back to own base if trying to cross roles
-       return next({ path: `/staff/${userRole.toLowerCase()}` });
+      const rolePathMap = {
+        ADMIN: '/staff/admin',
+        KASIR: '/staff/cashier',
+        KITCHEN: '/staff/kitchen',
+        DRIVER: '/staff/admin',
+      };
+      return next({ path: rolePathMap[userRole] || '/staff/admin' });
     }
     return next();
   }
