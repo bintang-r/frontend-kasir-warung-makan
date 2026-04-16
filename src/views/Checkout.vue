@@ -57,7 +57,6 @@
            </div>
 
            </div>
-        </div>
       </section>
 
       <!-- Payment Method -->

@@ -41,19 +41,7 @@
            </div>
         </div>
 
-        <!-- Confirmed Received Button -->
-        <div v-if="order.orderType === 'DELIVERY' && order.status !== 'COMPLETED' && !order.isReceived" class="mt-8">
-           <button 
-             @click="handleReceived" 
-             :disabled="isUpdating"
-             class="w-full bg-secondary text-white py-4 rounded-2xl font-black text-lg shadow-premium hover:bg-secondary-dark transition-all flex justify-center items-center gap-3 active:scale-95"
-           >
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12A9 9 0 113 12a9 9 0 0121 12z" />
-             </svg>
-             <span>{{ isUpdating ? 'Sedang Memproses...' : 'Suda Diterima' }}</span>
-           </button>
-        </div>
+
 
         <!-- Review Section -->
         <div v-if="order.status === 'COMPLETED' && !order.reviews?.length" class="mt-8 animate-down">
@@ -224,21 +212,9 @@ const submitReview = async () => {
 const getTimelineSteps = () => {
    if (!order.value) return [];
    
-   const commonSteps = [
+   return [
       { key: 'PENDING', name: 'Pesanan Dibuat', description: 'Menunggu konfirmasi dapur.' },
       { key: 'COOKING', name: 'Sedang Dimasak', description: 'Koki sedang menyiapkan pesanan.' },
-   ];
-
-   if (order.value.orderType === 'DELIVERY') {
-      return [
-         ...commonSteps,
-         { key: 'DELIVERING', name: 'Sedang Diantar', description: 'Kurir kami sedang menuju alamat dunsanak.' },
-         { key: 'COMPLETED', name: 'Sampai di Tujuan', description: 'Pesanan telah sampai. Selamat makan!' }
-      ];
-   }
-
-   return [
-      ...commonSteps,
       { key: 'READY', name: 'Siap Dihidangkan', description: 'Pesanan sudah siap di meja saji.' },
       { key: 'COMPLETED', name: 'Selesai', description: 'Terima kasih telah berkunjung.' }
    ];
@@ -246,7 +222,7 @@ const getTimelineSteps = () => {
 
 const isStepReached = (stepKey) => {
   if (!order.value) return false;
-  const statusHierarchy = ['PENDING', 'CONFIRMED', 'COOKING', 'READY', 'DELIVERING', 'COMPLETED'];
+  const statusHierarchy = ['PENDING', 'CONFIRMED', 'COOKING', 'READY', 'COMPLETED'];
   const currentIdx = statusHierarchy.indexOf(order.value.status);
   const stepIdx = statusHierarchy.indexOf(stepKey);
   return stepIdx <= currentIdx;
@@ -258,7 +234,6 @@ const getStatusBadge = (status) => {
       CONFIRMED: 'Dikonfirmasi',
       COOKING: 'Sedang Dimasak',
       READY: 'Siap Saji',
-      DELIVERING: 'Sedang Diantar',
       COMPLETED: 'Selesai'
    };
    return badges[status] || 'Status Pesanan';
@@ -269,7 +244,6 @@ const getStatusTitle = (status) => {
     case 'PENDING': return 'Saba Dulu dunsanak';
     case 'COOKING': return 'Sedang Dimasak';
     case 'READY': return 'Alah Siap! Silakan Santap';
-    case 'DELIVERING': return 'Pesanan Sadang Jalan';
     case 'COMPLETED': return 'Kanyang Sanak? Rancak!';
     default: return 'Pesanan Dunsanak';
   }
@@ -280,7 +254,6 @@ const getStatusDescription = (status) => {
     case 'PENDING': return 'Pesanan dunsanak alah masuak antrian dapur.';
     case 'COOKING': return 'Koki kami sadang fokus mamasak rendang favorit sanak.';
     case 'READY': return 'Pesanan alah panuah di meja saji, siap disantap.';
-    case 'DELIVERING': return 'Kurir kami sedang meluncur kencang ke tempat dunsanak.';
     case 'COMPLETED': return 'Makan dunsanak alah salasai, tarimo kasih dunsanak.';
     default: return 'Sadang mamproses status tabaru...';
   }

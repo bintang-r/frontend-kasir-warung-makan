@@ -175,7 +175,7 @@ const handleTouchEnd = () => {
 };
 
 const handleAddToCart = (item) => {
-  cartStore.addItem(item);
+  cartStore.addItem(item.id);
 };
 
 onMounted(async () => {

@@ -103,15 +103,7 @@
              </button>
 
              <button 
-               v-if="order.status === 'READY' && order.orderType === 'DELIVERY'"
-               @click="updateStatus(order.id, 'DELIVERING')"
-               class="flex-1 bg-purple-600 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
-             >
-               Kirim
-             </button>
-
-             <button 
-               v-if="['READY', 'DELIVERING'].includes(order.status)"
+               v-if="order.status === 'READY'"
                @click="updateStatus(order.id, 'COMPLETED')"
                class="flex-1 bg-primary text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
              >
@@ -188,7 +180,6 @@ const formatStatus = (status) => {
     CONFIRMED: 'Dikonfirmasi',
     COOKING: 'Dimasak',
     READY: 'Siap',
-    DELIVERING: 'Dikirim',
     COMPLETED: 'Selesai',
     CANCELLED: 'Batal'
   };
@@ -201,7 +192,6 @@ const getStatusClass = (status) => {
     CONFIRMED: 'bg-blue-500/10 text-blue-500',
     COOKING: 'bg-yellow-500/10 text-yellow-500',
     READY: 'bg-green-500/10 text-green-500',
-    DELIVERING: 'bg-purple-500/10 text-purple-500',
     COMPLETED: 'bg-gray-500/10 text-gray-500',
     CANCELLED: 'bg-red-500/10 text-red-500'
   };
@@ -211,8 +201,7 @@ const getStatusClass = (status) => {
 const getTypeClass = (type) => {
   const classes = {
     DINE_IN: 'bg-primary/20 text-primary',
-    TAKEAWAY: 'bg-secondary/20 text-secondary',
-    DELIVERY: 'bg-blue-500/20 text-blue-400'
+    TAKEAWAY: 'bg-secondary/20 text-secondary'
   };
   return classes[type] || 'bg-gray-700 text-gray-400';
 };
