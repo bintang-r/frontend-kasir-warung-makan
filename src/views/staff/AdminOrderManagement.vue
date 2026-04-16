@@ -183,6 +183,25 @@
          </div>
       </div>
     </teleport>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-[1500] flex items-center justify-center p-6 bg-gray-900/40 backdrop-blur-md">
+       <div class="absolute inset-0" @click="isDeleteModalOpen = false"></div>
+       <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-scale-in p-10 text-center">
+          <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+             <i class="fa-solid fa-file-invoice-dollar text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus Pesanan?</h3>
+          <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
+             Yakin ingin menghapus permanen pesanan <strong>#{{ orderToDelete }}</strong>? 
+             <span class="block mt-2 text-red-400 font-black uppercase text-[10px]">Laporan keuangan akan terpengaruh secara permanen.</span>
+          </p>
+          <div class="flex gap-4">
+             <button @click="isDeleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
+             <button @click="executeStoreDelete" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-red-500/30">Ya, Hapus</button>
+          </div>
+       </div>
+    </div>
   </div>
 </template>
 
@@ -195,6 +214,8 @@ const searchQuery = ref('');
 const selectedStatus = ref('ALL');
 const selectedOrder = ref(null);
 const loading = ref(false);
+const isDeleteModalOpen = ref(false);
+const orderToDelete = ref(null);
 
 const staffToast = inject('staffToast');
 
@@ -262,14 +283,23 @@ const viewDetail = (order) => {
   selectedOrder.value = order;
 };
 
-const confirmDelete = async (id) => {
-  if (!confirm('Peringatan: Menghapus pesanan bersifat permanen dan akan mempengaruhi laporan keuangan. Lanjutkan?')) return;
+const confirmDelete = (id) => {
+  orderToDelete.value = id;
+  isDeleteModalOpen.value = true;
+};
+
+const executeStoreDelete = async () => {
+  const id = orderToDelete.value;
+  isDeleteModalOpen.value = false;
+  
   try {
     await api.delete(`/orders/${id}`);
     staffToast.value?.display(`Pesanan #${id} telah dihapus selamanya.`, 'info', 'Audit Alert');
     fetchOrders();
   } catch (err) {
     staffToast.value?.display('Gagal menghapus entitas pesanan.', 'error');
+  } finally {
+    orderToDelete.value = null;
   }
 };
 

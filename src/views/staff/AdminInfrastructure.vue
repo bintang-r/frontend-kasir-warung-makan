@@ -82,7 +82,6 @@
           </div>
           <button @click="submitTable" class="w-full bg-gray-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest">{{ tableForm.id ? 'Perbarui' : 'Tambahkan' }}</button>
        </div>
-       </div>
     </div>
 
     <!-- Unified Delete Confirmation Modal -->
@@ -102,7 +101,6 @@
              <button @click="deleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
              <button @click="executeDelete" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-red-500/30">Ya, Hapus</button>
           </div>
-       </div>
     </div>
   </div>
 </template>

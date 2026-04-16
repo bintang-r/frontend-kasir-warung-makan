@@ -111,7 +111,6 @@
              </tbody>
           </table>
        </div>
-         </div>
     </div>
 
     <!-- Unified Delete Modal -->
@@ -134,8 +133,6 @@
           </div>
        </div>
     </div>
-
-  </div>
 
   </div>
 </template>
