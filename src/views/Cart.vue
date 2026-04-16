@@ -14,7 +14,7 @@
         <div v-for="item in cartStore.items" :key="item.id" class="flex gap-4 group">
           <!-- Item Image -->
           <div class="w-24 h-24 bg-gray-100 rounded-3xl overflow-hidden flex-shrink-0 shadow-card border border-gray-100/50">
-             <img v-if="item.menu?.image" :src="item.menu.image" class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" />
+             <img v-if="item.menu?.image" :src="getImageUrl(item.menu.image)" class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" />
              <div v-else class="flex items-center justify-center h-full text-gray-300">
                <i class="fa-solid fa-image text-3xl"></i>
              </div>
@@ -93,6 +93,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
+import { getImageUrl } from '../services/api';
 import NotificationToast from '../components/NotificationToast.vue';
 
 const cartStore = useCartStore();

@@ -63,7 +63,7 @@
             :key="promo.id"
             class="w-full h-full flex-shrink-0 relative"
           >
-            <img v-if="promo.image" :src="promo.image" alt="Promo" class="w-full h-full object-cover" />
+            <img v-if="promo.image" :src="getImageUrl(promo.image)" alt="Promo" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
               <i class="fa-solid fa-image text-5xl text-gray-300"></i>
             </div>
@@ -156,7 +156,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import api from '../services/api';
+import api, { getImageUrl } from '../services/api';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useCartStore } from '../stores/cart';

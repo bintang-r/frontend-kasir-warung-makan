@@ -30,7 +30,7 @@
     <div v-if="activeTab === 'promos'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
        <div v-for="promo in promos" :key="promo.id" class="group bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-2xl transition-all border-b-4 border-b-transparent hover:border-b-primary">
           <div class="h-48 overflow-hidden relative">
-             <img :src="promo.image" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+             <img :src="getImageUrl(promo.image)" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
              <div class="absolute top-4 right-4">
                 <span :class="promo.isActive ? 'bg-green-500' : 'bg-red-500'" class="px-3 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-widest shadow-lg">
                    {{ promo.isActive ? 'Aktif' : 'Non-Aktif' }}
@@ -103,10 +103,20 @@
                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Judul Kampanye</label>
                       <input v-model="form.title" required class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold focus:bg-white focus:border-primary transition-all shadow-inner" />
                    </div>
-                   <div class="space-y-2">
-                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">URL Cover Banner</label>
-                      <input v-model="form.image" required class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold focus:bg-white focus:border-primary transition-all shadow-inner" />
-                   </div>
+                    <div class="space-y-4">
+                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Banner Campaign</label>
+                       
+                       <div class="relative group h-48 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 overflow-hidden flex flex-col items-center justify-center transition-all hover:border-primary/50 shadow-inner">
+                          <img v-if="imagePreview || form.image" :src="imagePreview || getImageUrl(form.image)" class="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105" />
+                          <div class="relative z-10 flex flex-col items-center gap-2 p-4 text-center" :class="{'opacity-0 group-hover:opacity-100 transition-opacity': imagePreview || form.image}">
+                             <div class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-primary mb-2">
+                                <i class="fa-solid fa-image text-xl"></i>
+                             </div>
+                             <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ (imagePreview || form.image) ? 'Ganti Banner' : 'Pilih Banner' }}</p>
+                          </div>
+                          <input type="file" @change="handleFileChange" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-20" />
+                       </div>
+                    </div>
                    <div class="space-y-2">
                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Deskripsi Promo</label>
                       <textarea v-model="form.description" rows="3" class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold focus:bg-white focus:border-primary transition-all shadow-inner resize-none"></textarea>
@@ -168,7 +178,7 @@
 
 <script setup>
 import { ref, onMounted, watch, inject } from 'vue';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const activeTab = ref('promos');
 const promos = ref([]);
@@ -180,6 +190,17 @@ const deleteType = ref(''); // 'promo' or 'voucher'
 const itemToDelete = ref(null);
 
 const staffToast = inject('staffToast');
+
+const imagePreview = ref(null);
+const selectedFile = ref(null);
+
+const handleFileChange = (e) => {
+   const file = e.target.files[0];
+   if (file) {
+      selectedFile.value = file;
+      imagePreview.value = URL.createObjectURL(file);
+   }
+};
 
 const form = ref({});
 
@@ -198,6 +219,8 @@ const fetchData = async () => {
 watch(activeTab, fetchData);
 
 const openModal = (data = null) => {
+   imagePreview.value = null;
+   selectedFile.value = null;
    if (activeTab.value === 'promos') {
       form.value = data ? { ...data } : { id: null, title: '', image: '', description: '', isActive: true };
    } else {
@@ -213,16 +236,36 @@ const handleSubmit = async () => {
    isSubmitting.value = true;
    try {
       const endpoint = activeTab.value === 'promos' ? '/promos/admin' : '/promos/vouchers/admin';
+      
+      let payload;
+      let headers = {};
+
+      if (activeTab.value === 'promos') {
+         const formData = new FormData();
+         Object.keys(form.value).forEach(key => {
+            if (key === 'image' && selectedFile.value) {
+               formData.append('image', selectedFile.value);
+            } else if (form.value[key] !== null && form.value[key] !== undefined) {
+               formData.append(key, form.value[key]);
+            }
+         });
+         payload = formData;
+         headers = { 'Content-Type': 'multipart/form-data' };
+      } else {
+         payload = form.value;
+      }
+
       if (form.value.id) {
-         await api.put(`${endpoint}/${form.value.id}`, form.value);
+         await api.put(`${endpoint}/${form.value.id}`, payload, { headers });
          staffToast.value?.display('Data pemasaran berhasil diperbarui', 'success', 'Update Promo');
       } else {
-         await api.post(endpoint, form.value);
+         await api.post(endpoint, payload, { headers });
          staffToast.value?.display('Berhasil menerbitkan kampanye marketing baru', 'success', 'Promo Baru');
       }
       isModalOpen.value = false;
       fetchData();
    } catch (err) { 
+      console.error(err);
       staffToast.value?.display('Gagal mengirim data pemasaran.', 'error'); 
    } finally { 
       isSubmitting.value = false; 

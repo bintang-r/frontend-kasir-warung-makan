@@ -34,4 +34,14 @@ api.interceptors.response.use(
   }
 );
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
+export const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/600x400?text=RM+Siantar+Minang';
+  if (url.startsWith('http')) return url;
+  // Ensure the relative path starts correctly
+  const path = url.startsWith('/') ? url : `/${url}`;
+  return `${BASE_URL}${path}`;
+};
+
 export default api;

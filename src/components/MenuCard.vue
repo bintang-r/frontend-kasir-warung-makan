@@ -4,7 +4,7 @@
     <div class="relative aspect-[4/3] overflow-hidden bg-gray-100">
       <img 
         v-if="menu.image" 
-        :src="menu.image" 
+        :src="getImageUrl(menu.image)" 
         :alt="menu.name" 
         class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" 
       />
@@ -49,6 +49,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { getImageUrl } from '../services/api';
 
 const props = defineProps({
   menu: {

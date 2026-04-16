@@ -39,7 +39,7 @@
              <tbody class="divide-y divide-gray-50">
                 <tr v-for="menu in filteredMenus" :key="menu.id" class="group hover:bg-gray-50/50 transition-colors">
                    <td class="py-6">
-                      <img :src="menu.image || 'https://via.placeholder.com/100'" class="w-14 h-14 rounded-2xl object-cover shadow-sm grayscale group-hover:grayscale-0 transition-all border border-gray-100" />
+                      <img :src="getImageUrl(menu.image)" class="w-14 h-14 rounded-2xl object-cover shadow-sm grayscale group-hover:grayscale-0 transition-all border border-gray-100" />
                    </td>
                    <td class="py-6">
                       <p class="font-black text-gray-900 text-sm tracking-tight">{{ menu.name }}</p>
@@ -102,10 +102,20 @@
                 </div>
                 
                 <div class="space-y-6">
-                   <div class="space-y-2">
-                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">URL Foto Menu</label>
-                      <input v-model="form.image" class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold focus:bg-white focus:border-primary outline-none transition-all" />
-                   </div>
+                    <div class="space-y-4">
+                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Foto Produk</label>
+                       
+                       <div class="relative group h-48 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 overflow-hidden flex flex-col items-center justify-center transition-all hover:border-primary/50">
+                          <img v-if="imagePreview || form.image" :src="imagePreview || getImageUrl(form.image)" class="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105" />
+                          <div class="relative z-10 flex flex-col items-center gap-2 p-4 text-center" :class="{'opacity-0 group-hover:opacity-100 transition-opacity': imagePreview || form.image}">
+                             <div class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-primary mb-2">
+                                <i class="fa-solid fa-camera-retro text-xl"></i>
+                             </div>
+                             <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ (imagePreview || form.image) ? 'Ganti Foto' : 'Pilih Foto' }}</p>
+                          </div>
+                          <input type="file" @change="handleFileChange" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-20" />
+                       </div>
+                    </div>
                    <div class="space-y-2">
                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Atur Status</label>
                       <div class="flex gap-4">
@@ -166,7 +176,7 @@
 
 <script setup>
 import { ref, onMounted, computed, inject } from 'vue';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const menus = ref([]);
 const categories = ref([]);
@@ -177,6 +187,17 @@ const isDeleteModalOpen = ref(false);
 const menuToDelete = ref(null);
 
 const staffToast = inject('staffToast');
+
+const imagePreview = ref(null);
+const selectedFile = ref(null);
+
+const handleFileChange = (e) => {
+   const file = e.target.files[0];
+   if (file) {
+      selectedFile.value = file;
+      imagePreview.value = URL.createObjectURL(file);
+   }
+};
 
 const form = ref({
    id: null,
@@ -208,6 +229,8 @@ const fetchData = async () => {
 };
 
 const openModal = (menu = null) => {
+   imagePreview.value = null;
+   selectedFile.value = null;
    if (menu) {
       form.value = { ...menu, categoryId: menu.categoryId.toString() };
    } else {
@@ -219,11 +242,24 @@ const openModal = (menu = null) => {
 const handleSubmit = async () => {
    isSubmitting.value = true;
    try {
+      const formData = new FormData();
+      Object.keys(form.value).forEach(key => {
+         if (key === 'image' && selectedFile.value) {
+            formData.append('image', selectedFile.value);
+         } else if (form.value[key] !== null && form.value[key] !== undefined) {
+            formData.append(key, form.value[key]);
+         }
+      });
+
       if (form.value.id) {
-         await api.put(`/menus/${form.value.id}`, form.value);
+         await api.put(`/menus/${form.value.id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+         });
          staffToast.value?.display('Katalog menu berhasil diperbarui', 'success', 'Update Berhasil');
       } else {
-         await api.post('/menus', form.value);
+         await api.post('/menus', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+         });
          staffToast.value?.display('Menu baru telah ditambahkan ke katalog', 'success', 'Menu Baru');
       }
       isModalOpen.value = false;

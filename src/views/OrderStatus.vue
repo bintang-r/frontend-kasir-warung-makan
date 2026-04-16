@@ -124,7 +124,7 @@
               <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center group">
                  <div class="flex gap-4 items-center">
                     <div class="w-12 h-12 rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 group-hover:scale-105 transition-transform duration-300">
-                       <img :src="item.menu?.image" class="w-full h-full object-cover" />
+                       <img :src="getImageUrl(item.menu?.image)" class="w-full h-full object-cover" />
                     </div>
                     <div>
                        <p class="font-bold text-gray-900 text-sm leading-none mb-1 group-hover:text-primary transition-colors">{{ item.menu?.name }}</p>
@@ -163,7 +163,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useOrderStore } from '../stores/order';
 import NotificationToast from '../components/NotificationToast.vue';
-import api from '../services/api';
+import api, { getImageUrl } from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
