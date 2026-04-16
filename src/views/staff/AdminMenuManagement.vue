@@ -139,21 +139,20 @@
        </div>
     </div>
     
-    <NotificationToast ref="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const menus = ref([]);
 const categories = ref([]);
 const selectedCategory = ref(null);
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
-const toast = ref(null);
+
+const staffToast = inject('staffToast');
 
 const form = ref({
    id: null,
@@ -198,30 +197,30 @@ const handleSubmit = async () => {
    try {
       if (form.value.id) {
          await api.put(`/menus/${form.value.id}`, form.value);
-         toast.value?.display('Data menu berhasil diperbarui');
+         staffToast.value?.display('Katalog menu berhasil diperbarui', 'success', 'Update Berhasil');
       } else {
          await api.post('/menus', form.value);
-         toast.value?.display('Menu baru berhasil ditambahkan');
+         staffToast.value?.display('Menu baru telah ditambahkan ke katalog', 'success', 'Menu Baru');
       }
       isModalOpen.value = false;
       fetchData();
    } catch (err) {
       console.error('Submit failed', err);
-      toast.value?.display('Gagal menyimpan data', 'error');
+      staffToast.value?.display('Terjadi kesalahan saat menyimpan data menu.', 'error');
    } finally {
       isSubmitting.value = false;
    }
 };
 
 const handleDelete = async (id) => {
-   if (!confirm('Apakah Anda yakin ingin menghapus menu ini?')) return;
+   if (!confirm('Hapus menu ini secara permanen dari basis data?')) return;
    try {
       await api.delete(`/menus/${id}`);
-      toast.value?.display('Menu berhasil dihapus');
+      staffToast.value?.display('Item menu telah dihapus secara permanen.', 'info', 'Audit Data');
       fetchData();
    } catch (err) {
       console.error('Delete failed', err);
-      toast.value?.display('Hapus gagal', 'error');
+      staffToast.value?.display('Gagal menghapus entitas menu.', 'error');
    }
 };
 

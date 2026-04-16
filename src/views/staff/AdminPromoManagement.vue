@@ -143,21 +143,20 @@
        </div>
     </div>
 
-    <NotificationToast ref="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const activeTab = ref('promos');
 const promos = ref([]);
 const vouchers = ref([]);
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
-const toast = ref(null);
+
+const staffToast = inject('staffToast');
 
 const form = ref({});
 
@@ -193,14 +192,15 @@ const handleSubmit = async () => {
       const endpoint = activeTab.value === 'promos' ? '/promos/admin' : '/promos/vouchers/admin';
       if (form.value.id) {
          await api.put(`${endpoint}/${form.value.id}`, form.value);
+         staffToast.value?.display('Data pemasaran berhasil diperbarui', 'success', 'Update Promo');
       } else {
          await api.post(endpoint, form.value);
+         staffToast.value?.display('Berhasil menerbitkan kampanye marketing baru', 'success', 'Promo Baru');
       }
-      toast.value?.display('Data berhasil disimpan');
       isModalOpen.value = false;
       fetchData();
    } catch (err) { 
-      toast.value?.display('Gagal menyimpan data', 'error'); 
+      staffToast.value?.display('Gagal mengirim data pemasaran.', 'error'); 
    } finally { 
       isSubmitting.value = false; 
    }
@@ -211,9 +211,9 @@ const handleDelete = async (id) => {
    try {
       const endpoint = activeTab.value === 'promos' ? '/promos/admin' : '/promos/vouchers/admin';
       await api.delete(`${endpoint}/${id}`);
-      toast.value?.display('Data berhasil dihapus');
+      staffToast.value?.display('Data marketing telah dihapus.', 'info', 'Operasi Data');
       fetchData();
-   } catch (err) { toast.value?.display('Gagal menghapus', 'error'); }
+   } catch (err) { staffToast.value?.display('Terjadi kesalahan saat penghapusan.', 'error'); }
 };
 
 const formatPrice = (price) => new Intl.NumberFormat('id-ID').format(price);

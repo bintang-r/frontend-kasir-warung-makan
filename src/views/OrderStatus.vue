@@ -41,8 +41,6 @@
             </div>
         </div>
 
-
-
         <!-- Review Section -->
         <div v-if="order.status === 'COMPLETED' && !order.reviews?.length" class="mt-8 animate-down">
            <div class="bg-gray-50 rounded-3xl p-8 border-2 border-primary/10">

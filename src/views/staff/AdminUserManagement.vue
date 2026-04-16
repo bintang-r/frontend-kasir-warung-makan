@@ -101,20 +101,19 @@
        </div>
     </div>
     
-    <NotificationToast ref="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const users = ref([]);
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
-const toast = ref(null);
 const availableRoles = ['CUSTOMER', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER'];
+
+const staffToast = inject('staffToast');
 
 const form = ref({
    id: null,
@@ -140,12 +139,12 @@ const handleSubmit = async () => {
    try {
       await api.patch(`/users/${form.value.id}`, { role: form.value.role }); 
       
-      toast.value?.display('Otoritas user berhasil diperbarui');
+      staffToast.value?.display('Otoritas user berhasil diperbarui', 'success', 'Update Role');
       isModalOpen.value = false;
       fetchUsers();
    } catch (err) {
       console.error('Update failed', err);
-      toast.value?.display('Gagal memperbarui role', 'error');
+      staffToast.value?.display('Gagal memperbarui role akses.', 'error');
    } finally {
       isSubmitting.value = false;
    }

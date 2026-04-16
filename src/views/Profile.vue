@@ -1,102 +1,94 @@
 <template>
-  <div class="bg-gray-50/30 min-h-screen pb-32">
+  <div class="bg-[#fafafa] min-h-screen pb-40">
     <!-- Header -->
-    <div class="px-6 pt-12 pb-6 bg-white sticky top-0 z-30 border-b border-gray-100 flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-black text-gray-900 leading-none">Profil <span class="text-primary">Saya</span></h1>
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Kelola Akun Anda</p>
+    <div class="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+         <button @click="router.back()" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-primary transition-all active:scale-90">
+            <i class="fa-solid fa-chevron-left"></i>
+         </button>
+         <div>
+            <h1 class="text-xl font-black text-gray-900 leading-none">Pengaturan <span class="text-primary">Profil</span></h1>
+            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Kelola identitas dan keamanan akun</p>
+         </div>
       </div>
-      <button @click="handleLogout" class="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors">
-         <i class="fa-solid fa-right-from-bracket text-xl"></i>
+      <button @click="handleLogout" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center active:scale-95 transition-all">
+         <i class="fa-solid fa-power-off"></i>
       </button>
     </div>
 
     <!-- Content -->
-    <div class="px-6 mt-8">
-      <!-- User Card -->
-      <div v-if="authStore.user" class="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm relative overflow-hidden mb-8">
-         <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
-         
+    <div class="px-6 mt-8 max-w-lg mx-auto space-y-8">
+      <!-- Identity Card -->
+      <div class="bg-gray-900 rounded-[40px] p-10 text-white shadow-2xl relative overflow-hidden">
+         <div class="absolute -right-16 -top-16 w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
          <div class="flex items-center gap-6 relative z-10">
-            <div class="w-20 h-20 bg-primary text-white rounded-3xl flex items-center justify-center text-3xl font-black shadow-lg shadow-primary/20">
+            <div class="w-20 h-20 bg-white/10 backdrop-blur-md rounded-[28px] flex items-center justify-center text-3xl font-black text-white border border-white/10 shadow-inner">
                {{ authStore.user?.name?.charAt(0).toUpperCase() }}
             </div>
             <div>
-               <h2 class="text-2xl font-black text-gray-900 leading-tight">{{ authStore.user?.name }}</h2>
-               <p class="text-sm font-bold text-gray-400 mt-1">{{ authStore.user?.email }}</p>
-               <div class="mt-2 inline-flex items-center px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-black text-gray-500 uppercase tracking-widest">
+               <h2 class="text-2xl font-black tracking-tight">{{ authStore.user?.name }}</h2>
+               <p class="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mt-1">{{ authStore.user?.email }}</p>
+               <div class="mt-4 inline-flex items-center px-3 py-1 bg-primary rounded-lg text-[8px] font-black uppercase tracking-widest">
                   {{ authStore.user?.role }}
                </div>
             </div>
          </div>
       </div>
 
-      <!-- Settings Form -->
+      <!-- Update Form -->
       <div class="space-y-6">
-        <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest px-1">Pengaturan Profil</h3>
-        
-        <div class="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm space-y-6">
-           <!-- Name -->
-           <div>
-              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nama Lengkap</label>
-              <input 
-                v-model="form.name"
-                type="text" 
-                class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 text-sm font-bold transition-all"
-                placeholder="Nama Anda..."
-              />
-           </div>
+         <h3 class="font-black text-[10px] text-gray-400 uppercase tracking-[0.2em] px-2">Informasi Personal</h3>
+         
+         <div class="bg-white rounded-[40px] p-10 border border-gray-100 shadow-xl shadow-gray-200/40 space-y-8">
+            <div class="space-y-2">
+               <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+               <div class="relative">
+                  <i class="fa-solid fa-user absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                  <input v-model="form.name" class="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 pl-12 pr-6 text-sm font-black focus:bg-white focus:border-primary transition-all outline-none" />
+               </div>
+            </div>
 
-           <!-- Email -->
-           <div>
-              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Alamat Email</label>
-              <input 
-                v-model="form.email"
-                type="email" 
-                class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 text-sm font-bold transition-all"
-                placeholder="Email Anda..."
-              />
-           </div>
+            <div class="space-y-2">
+               <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Email</label>
+               <div class="relative">
+                  <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                  <input v-model="form.email" class="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 pl-12 pr-6 text-sm font-black focus:bg-white focus:border-primary transition-all outline-none" />
+               </div>
+            </div>
 
-           <!-- Password -->
-           <div>
-              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Ganti Password (Opsional)</label>
-              <input 
-                v-model="form.password"
-                type="password" 
-                class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 text-sm font-bold transition-all"
-                placeholder="••••••••"
-              />
-              <p class="text-[9px] text-gray-400 mt-2 px-1 italic">Kosongkan saja jika tidak ingin ganti password.</p>
-           </div>
-        </div>
+            <div class="pt-4 border-t border-gray-50">
+               <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kredensial Login</label>
+               <div class="relative mt-2">
+                  <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                  <input v-model="form.password" type="password" placeholder="Ganti password (opsional)" class="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 pl-12 pr-6 text-sm font-black focus:bg-white focus:border-primary transition-all outline-none" />
+               </div>
+            </div>
+         </div>
 
-        <!-- Submit -->
-        <button 
-          @click="handleUpdate"
-          :disabled="loading"
-          class="w-full bg-gray-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all disabled:opacity-50"
-        >
-          <span v-if="!loading">Simpan Perubahan</span>
-          <span v-else class="flex items-center justify-center gap-2">
-             <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-             Menyimpan...
-          </span>
-        </button>
+         <button 
+           @click="handleUpdate"
+           :disabled="loading"
+           class="w-full bg-gray-900 text-white h-16 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 hover:bg-primary"
+         >
+           <span v-if="!loading">Perbarui Profil</span>
+           <div v-else class="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+         </button>
+      </div>
+
+      <!-- Statistics (Static for aesthetics) -->
+      <div class="grid grid-cols-2 gap-4">
+         <div class="bg-white p-6 rounded-[32px] border border-gray-100 flex flex-col items-center">
+            <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Order</p>
+            <p class="text-xl font-black text-gray-900">12</p>
+         </div>
+         <div class="bg-white p-6 rounded-[32px] border border-gray-100 flex flex-col items-center">
+            <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Loyalty Points</p>
+            <p class="text-xl font-black text-primary">850</p>
+         </div>
       </div>
     </div>
 
-    <!-- Notification Toast -->
-    <transition
-      enter-active-class="transition duration-300 ease-out translate-y-4"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition duration-200 ease-in opacity-100"
-      leave-to-class="opacity-0"
-    >
-       <div v-if="toast" class="fixed bottom-32 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest z-50 shadow-2xl">
-          {{ toast }}
-       </div>
-    </transition>
+    <NotificationToast ref="toastRef" />
   </div>
 </template>
 
@@ -105,11 +97,12 @@ import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
 import api from '../services/api';
+import NotificationToast from '../components/NotificationToast.vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
-const toast = ref('');
+const toastRef = ref(null);
 
 const form = reactive({
   name: '',
@@ -131,28 +124,20 @@ onMounted(() => {
 const handleUpdate = async () => {
   loading.value = true;
   try {
-    const updateData = {
-      name: form.name,
-      email: form.email
-    };
-    if (form.password) {
-      updateData.password = form.password;
-    }
+    const updateData = { name: form.name, email: form.email };
+    if (form.password) updateData.password = form.password;
 
     const response = await api.patch('/users/me', updateData);
     
-    // Update local store AND persist to localStorage
+    // Sync store and session
     const updatedUser = { ...authStore.user, ...response.data };
     authStore.user = updatedUser;
     localStorage.setItem('user', JSON.stringify(updatedUser));
     
-    toast.value = 'Profil berhasil diperbarui! ✨';
+    toastRef.value?.display('Profil berhasil diperbarui! ✨');
     form.password = '';
-    setTimeout(() => toast.value = '', 3000);
   } catch (e) {
-    console.error(e);
-    toast.value = 'Maaf, gagal mengupdate profil. ❌';
-    setTimeout(() => toast.value = '', 3000);
+    toastRef.value?.display('Gagal memperbarui profil.', 'error');
   } finally {
     loading.value = false;
   }
@@ -163,6 +148,3 @@ const handleLogout = () => {
   router.push('/login');
 };
 </script>
-
-<style scoped>
-</style>

@@ -84,18 +84,17 @@
        </div>
     </div>
 
-    <NotificationToast ref="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const categories = ref([]);
 const tables = ref([]);
-const toast = ref(null);
+
+const staffToast = inject('staffToast');
 
 const categoryModalOpen = ref(false);
 const categoryForm = ref({ id: null, name: '' });
@@ -123,15 +122,19 @@ const submitCategory = async () => {
    try {
       if (categoryForm.value.id) await api.put(`/categories/${categoryForm.value.id}`, categoryForm.value);
       else await api.post('/categories', categoryForm.value);
-      toast.value?.display('Kategori berhasil diperbarui');
+      staffToast.value?.display('Data kategori menu berhasil diperbarui', 'success', 'Update Infrastruktur');
       categoryModalOpen.value = false;
       fetchData();
-   } catch (err) { toast.value?.display('Gagal', 'error'); }
+   } catch (err) { staffToast.value?.display('Gagal memperbarui kategori.', 'error'); }
 };
 
 const handleDeleteCategory = async (id) => {
    if (!confirm('Hapus kategori ini?')) return;
-   try { await api.delete(`/categories/${id}`); fetchData(); } catch (e) { toast.value?.display('Gagal', 'error'); }
+   try { 
+      await api.delete(`/categories/${id}`); 
+      staffToast.value?.display('Kategori telah dihapus.', 'info', 'Operasi Data');
+      fetchData(); 
+   } catch (e) { staffToast.value?.display('Gagal menghapus kategori.', 'error'); }
 };
 
 const openTableModal = (table = null) => {
@@ -143,15 +146,19 @@ const submitTable = async () => {
    try {
       if (tableForm.value.id) await api.put(`/tables/${tableForm.value.id}`, tableForm.value);
       else await api.post('/tables', tableForm.value);
-      toast.value?.display('Meja berhasil diperbarui');
+      staffToast.value?.display('Informasi meja berhasil diperbarui', 'success', 'Update Meja');
       tableModalOpen.value = false;
       fetchData();
-   } catch (err) { toast.value?.display('Gagal', 'error'); }
+   } catch (err) { staffToast.value?.display('Gagal memperbarui data meja.', 'error'); }
 };
 
 const handleDeleteTable = async (id) => {
    if (!confirm('Hapus meja ini?')) return;
-   try { await api.delete(`/tables/${id}`); fetchData(); } catch (e) { toast.value?.display('Gagal', 'error'); }
+   try { 
+      await api.delete(`/tables/${id}`); 
+      staffToast.value?.display('Meja telah dihapus dari sistem.', 'info', 'Operasi Data');
+      fetchData(); 
+   } catch (e) { staffToast.value?.display('Gagal menghapus meja.', 'error'); }
 };
 
 onMounted(fetchData);

@@ -32,30 +32,29 @@
       </nav>
 
       <!-- Account / Logout -->
-      <div class="p-6 border-t border-white/5 bg-black/20">
-          <div class="overflow-hidden">
+        <div class="p-6 border-t border-white/5 bg-black/20 space-y-4">
+          <div class="overflow-hidden mb-4">
             <p class="font-black text-white text-sm truncate uppercase tracking-tighter">{{ user?.name }}</p>
             <p class="text-[10px] font-black text-primary/80 uppercase tracking-widest">{{ user?.role }}</p>
           </div>
-        </div>
-        
-        <router-link 
-          to="/staff/profile"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs mb-4 border border-white/5 hover:bg-white/5"
-          :class="route.path === '/staff/profile' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-400 hover:text-white'"
-        >
-          <i class="fa-solid fa-id-card-clip"></i>
-          Manajemen Profil
-        </router-link>
+          
+          <router-link 
+            to="/staff/profile"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs border border-white/5 hover:bg-white/5"
+            :class="route.path === '/staff/profile' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-400 hover:text-white'"
+          >
+            <i class="fa-solid fa-id-card-clip"></i>
+            Manajemen Profil
+          </router-link>
 
-        <button 
-          @click="handleLogout"
-          class="w-full bg-white/5 hover:bg-red-500/10 hover:text-red-500 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 flex items-center justify-center gap-3 border border-white/5"
-        >
-          <i class="fa-solid fa-right-from-bracket"></i>
-          Keluar Sesi
-        </button>
-      </div>
+          <button 
+            @click="handleLogout"
+            class="w-full bg-white/5 hover:bg-red-500/10 hover:text-red-500 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 flex items-center justify-center gap-3 border border-white/5"
+          >
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Keluar Sesi
+          </button>
+        </div>
     </aside>
 
     <!-- Main Content -->
@@ -91,18 +90,25 @@
         </router-view>
       </div>
     </main>
+
+    <!-- Premium Staff Toast -->
+    <NotificationToast ref="staffToast" position="top-right" />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import NotificationToast from '../components/NotificationToast.vue';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const user = authStore.user;
+
+const staffToast = ref(null);
+provide('staffToast', staffToast);
 
 const currentRouteName = computed(() => {
   return route.meta.title || 'Dashboard';
