@@ -114,7 +114,7 @@ const users = ref([]);
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
 const toast = ref(null);
-const availableRoles = ['CUSTOMER', 'ADMIN', 'KASIR', 'KITCHEN'];
+const availableRoles = ['CUSTOMER', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER'];
 
 const form = ref({
    id: null,
@@ -156,6 +156,7 @@ const getRoleClass = (role) => {
       ADMIN: 'bg-primary text-white shadow-lg shadow-primary/20',
       KASIR: 'bg-blue-600 text-white shadow-lg shadow-blue-200',
       KITCHEN: 'bg-orange-500 text-white shadow-lg shadow-orange-100',
+      DRIVER: 'bg-emerald-600 text-white shadow-lg shadow-emerald-100',
       CUSTOMER: 'bg-gray-100 text-gray-500'
    };
    return classes[role] || 'bg-gray-50';
