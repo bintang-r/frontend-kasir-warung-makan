@@ -40,7 +40,7 @@
               </div>
               <p class="font-bold text-gray-900 text-[10px]">Bungkus</p>
               <div v-if="orderType === 'TAKEAWAY'" class="absolute -top-1 -right-1 bg-primary text-white p-1 rounded-full shadow-lg">
-                </svg>
+                 <i class="fa-solid fa-check text-[8px]"></i>
               </div>
            </div>
 
