@@ -3,7 +3,9 @@ import { ref, computed } from 'vue';
 import api from '../services/api';
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(JSON.parse(localStorage.getItem('user')) || null);
+  let storedUser = localStorage.getItem('user');
+  if (storedUser === 'undefined') storedUser = null;
+  const user = ref(storedUser ? JSON.parse(storedUser) : null);
   const token = ref(localStorage.getItem('token') || null);
   const guestToken = ref(localStorage.getItem('guest_token') || null);
 
