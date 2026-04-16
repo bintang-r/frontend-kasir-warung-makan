@@ -13,12 +13,12 @@ const cartStore = useCartStore()
 const notificationStore = useNotificationStore()
 const route = useRoute()
 
-// Staff routes are anything starting with /staff
-const isStaffRoute = computed(() => route.path.startsWith('/staff'))
+// Staff routes plus universal login should be flexible
+const isFlexibleRoute = computed(() => route.path.startsWith('/staff') || route.name === 'Login' || route.name === 'Register')
 
 const hideCustomerUI = computed(() => {
-  // Hide customer-specific UI (TopBar, BottomNav, etc) on staff routes or specific pages
-  return isStaffRoute.value || ['Login', 'Register'].includes(route.name)
+  // Hide customer-specific UI (TopBar, BottomNav, etc) on flexible routes
+  return isFlexibleRoute.value
 })
 
 onMounted(() => {
@@ -37,7 +37,7 @@ onMounted(() => {
   <div class="min-h-screen bg-gray-100 flex flex-col items-center overflow-x-hidden">
     
     <div 
-      :class="isStaffRoute ? 'w-full' : 'w-full max-w-md bg-white shadow-premium min-h-screen'"
+      :class="isFlexibleRoute ? 'w-full' : 'w-full max-w-md bg-white shadow-premium min-h-screen'"
       class="relative flex flex-col transition-all duration-500"
     >
       <TopBar v-if="!hideCustomerUI" />
@@ -53,7 +53,7 @@ onMounted(() => {
         </router-view>
       </div>
       
-      <template v-if="!isStaffRoute">
+      <template v-if="!isFlexibleRoute">
         <BottomNav v-if="!hideCustomerUI" />
         <CartDrawer />
         <NotificationDrawer />
