@@ -8,6 +8,43 @@
        <p class="text-2xl font-black text-gray-900 leading-tight mt-1">Nio makan apo dunsanak hari ko?</p>
     </div>
 
+    <!-- Active Order Card -->
+    <div v-if="activeOrder" class="px-6 py-4 animate-down">
+      <div 
+        @click="router.push(`/order-status?id=${activeOrder.id}`)"
+        class="bg-gray-900 rounded-[32px] p-6 shadow-xl relative overflow-hidden group cursor-pointer active:scale-95 transition-all"
+      >
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:bg-white/10 transition-colors"></div>
+        
+        <div class="flex justify-between items-start relative z-10">
+           <div>
+              <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Pesanan Aktif</p>
+              <h3 class="text-xl font-black text-white mt-1">#{{ activeOrder.id.toString() }}</h3>
+           </div>
+           <div class="flex flex-col items-end">
+              <span class="px-3 py-1 bg-primary text-white text-[9px] font-black uppercase rounded-lg tracking-widest shadow-lg shadow-primary/20">
+                 {{ formatStatus(activeOrder.status) }}
+              </span>
+              <span class="text-[9px] text-white/40 font-bold mt-2 uppercase tracking-widest">{{ activeOrder.items.length }} Items</span>
+           </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between relative z-10">
+           <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                 <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+              </div>
+              <p class="text-xs font-bold text-white/80">Lacak perkembangan pesanan dunsanak...</p>
+           </div>
+           <div class="text-white group-hover:translate-x-1 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+           </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Promo Banner Carousel -->
     <div class="px-6 py-4">
       <div v-if="isLoading" class="w-full aspect-[2/1] bg-gray-200 rounded-3xl animate-pulse"></div>
@@ -134,6 +171,7 @@ const isLoading = ref(true);
 const router = useRouter();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const activeOrder = ref(null);
 
 // Carousel Logic
 const currentPromoIndex = ref(0);
@@ -192,6 +230,11 @@ onMounted(async () => {
       
     promos.value = promoRes.data || [];
     if (promos.value.length > 0) startAutoSlide();
+
+    // Fetch active orders
+    const ordersRes = await api.get('/orders');
+    const active = (ordersRes.data || []).find(o => !['COMPLETED', 'CANCELLED'].includes(o.status));
+    if (active) activeOrder.value = active;
   } catch (err) {
     console.error('Failed to load home data', err);
   } finally {
@@ -202,6 +245,15 @@ onMounted(async () => {
 onUnmounted(() => {
   stopAutoSlide();
 });
+const formatStatus = (status) => {
+  const statuses = {
+    PENDING: 'Sedang Antre',
+    CONFIRMED: 'Dikonfirmasi',
+    COOKING: 'Sedang Dimasak',
+    READY: 'Siap Saji'
+  };
+  return statuses[status] || status;
+};
 </script>
 
 <style scoped>
@@ -212,7 +264,11 @@ onUnmounted(() => {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-</style>
-
-<style scoped>
+.animate-down {
+  animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>

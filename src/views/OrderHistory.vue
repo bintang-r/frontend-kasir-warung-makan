@@ -143,7 +143,6 @@ const formatStatus = (status) => {
     CONFIRMED: 'Dikonfirmasi',
     COOKING: 'Dimasak',
     READY: 'Siap Saji',
-    DELIVERING: 'Diantar',
     COMPLETED: 'Selesai',
     CANCELLED: 'Dibatalkan'
   };
@@ -156,7 +155,6 @@ const getStatusClass = (status) => {
     CONFIRMED: 'bg-blue-50 text-blue-600',
     COOKING: 'bg-yellow-50 text-yellow-600',
     READY: 'bg-green-50 text-green-600',
-    DELIVERING: 'bg-purple-50 text-purple-600',
     COMPLETED: 'bg-green-50 text-green-600',
     CANCELLED: 'bg-red-50 text-red-600'
   };

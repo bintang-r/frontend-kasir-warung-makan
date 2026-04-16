@@ -25,11 +25,16 @@
       <div v-else-if="order" class="px-6 mt-8 flex-1">
         <!-- Status Hero Card -->
         <div class="bg-primary rounded-3xl p-8 text-white relative overflow-hidden shadow-premium">
-           <div class="relative z-10">
-              <p class="text-xs font-bold uppercase tracking-widest text-white/70">{{ getStatusBadge(order.status) }}</p>
-              <h2 class="text-3xl font-black mt-1 leading-tight">{{ getStatusTitle(order.status) }}</h2>
-              <p class="text-sm mt-4 text-white/80 font-medium leading-relaxed max-w-xs">{{ getStatusDescription(order.status) }}</p>
-           </div>
+            <div class="relative z-10">
+               <div class="flex justify-between items-start">
+                  <p class="text-xs font-bold uppercase tracking-widest text-white/70">{{ getStatusBadge(order.status) }}</p>
+                  <div :class="isPaid ? 'bg-green-500/30' : 'bg-white/10'" class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/20 backdrop-blur-sm">
+                     {{ isPaid ? 'Lunas ✓' : 'Belum Bayar' }}
+                  </div>
+               </div>
+               <h2 class="text-3xl font-black mt-1 leading-tight">{{ getStatusTitle(order.status) }}</h2>
+               <p class="text-sm mt-4 text-white/80 font-medium leading-relaxed max-w-xs">{{ getStatusDescription(order.status) }}</p>
+            </div>
            
            <div class="absolute -right-6 -bottom-6 opacity-20 pointer-events-none scale-150 animate-float">
               <svg v-if="order.status === 'COOKING'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48 animate-cook">
@@ -163,13 +168,26 @@
         </div>
       </div>
       
+      <div v-else class="flex flex-col items-center justify-center py-32 flex-1 px-6 text-center">
+         <div class="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center text-gray-300 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008h-.008v-.008z" />
+            </svg>
+         </div>
+         <h3 class="text-lg font-black text-gray-900 border-none">Pesanan Indak Ditamukan</h3>
+         <p class="text-sm text-gray-500 mt-2 leading-relaxed">Maaf dunsanak, pesanan jo ID ko indak ado atau dunsanak indak punyo akses.</p>
+         <button @click="router.push('/')" class="mt-8 bg-gray-900 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+            Baliak ka Home
+         </button>
+      </div>
+
       <NotificationToast ref="toast" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useOrderStore } from '../stores/order';
 import NotificationToast from '../components/NotificationToast.vue';
@@ -187,6 +205,10 @@ const isUpdating = ref(false);
 
 const rating = ref(0);
 const comment = ref('');
+
+const isPaid = computed(() => {
+  return order.value?.payments?.some(p => p.status === 'PAID') || false;
+});
 
 let refreshInterval = null;
 
@@ -269,7 +291,8 @@ const getStatusDescription = (status) => {
 };
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('id-ID').format(price);
+  if (price === null || price === undefined) return '0';
+  return new Intl.NumberFormat('id-ID').format(Number(price));
 };
 
 onMounted(() => {
