@@ -30,6 +30,7 @@ const AdminSystemLogs = () => import('../views/staff/AdminSystemLogs.vue');
 const CashierDashboard = () => import('../views/staff/CashierDashboard.vue');
 const KitchenDashboard = () => import('../views/staff/KitchenDashboard.vue');
 const KitchenLayout = () => import('../layouts/KitchenLayout.vue');
+const CashierLayout = () => import('../layouts/CashierLayout.vue');
 
 const routes = [
   { path: '/', component: Home, name: 'Home' },
@@ -111,11 +112,20 @@ const routes = [
         name: 'AdminSystemLogs', 
         meta: { role: 'ADMIN', title: 'System Logs & Audit' } 
       },
-      { 
-        path: 'cashier', 
-        component: CashierDashboard, 
-        name: 'CashierDashboard', 
-        meta: { role: 'KASIR', title: 'Panel Verifikasi Kasir' } 
+    ]
+  },
+
+  // ── Kasir – uses its own POS layout (no sidebar) ──
+  {
+    path: '/staff',
+    component: CashierLayout,
+    meta: { requiresAuth: true, isStaffOnly: true },
+    children: [
+      {
+        path: 'cashier',
+        component: CashierDashboard,
+        name: 'CashierDashboard',
+        meta: { role: 'KASIR', title: 'Panel Verifikasi Kasir' }
       },
     ]
   },
