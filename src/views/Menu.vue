@@ -36,7 +36,7 @@
             :key="cat.id"
             @click="selectedCategory = cat.id"
             class="flex-shrink-0 px-5 py-2 rounded-xl text-xs font-bold transition-all"
-            :class="selectedCategory === cat.id ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+            :class="String(selectedCategory) === String(cat.id) ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
           >
             {{ cat.name }}
           </button>

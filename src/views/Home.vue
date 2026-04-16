@@ -69,7 +69,7 @@
         <div 
           v-for="cat in categories" 
           :key="cat.id" 
-          @click="router.push(`/menu?categoryId=${cat.id}`)"
+          @click="router.push(`/menu?category=${cat.id}`)"
           class="flex-shrink-0 bg-white rounded-2xl shadow-card border border-gray-100 flex items-center gap-3 px-5 py-3 hover:bg-primary-surface hover:border-primary/20 transition-all cursor-pointer group active:scale-95"
         >
           <div class="w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors"></div>
