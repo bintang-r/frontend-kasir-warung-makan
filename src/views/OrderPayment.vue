@@ -33,26 +33,6 @@
       <div class="space-y-6">
         <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest px-1">Intruksi Pembayaran</h3>
         
-        <!-- Transfer Bank -->
-        <div v-if="method === 'TRANSFER'" class="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm space-y-8">
-           <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                 <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
-                    <span class="font-black text-xs italic">BCA</span>
-                 </div>
-                 <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Nomor Rekening</p>
-                    <p class="text-lg font-black text-gray-900 mt-1">8835 1234 5678</p>
-                 </div>
-              </div>
-              <button @click="copyText('8835 1234 5678')" class="text-primary font-black text-[10px] uppercase tracking-widest bg-primary/5 px-3 py-2 rounded-xl">Salin</button>
-           </div>
-           
-           <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-              <p class="text-[11px] text-gray-500 font-medium leading-relaxed">Silakan transfer sesuai nominal di atas. Gunakan berita acara **ID Pesanan #{{ order.id.toString() }}** supaya proses konfirmasi makin capek.</p>
-           </div>
-        </div>
-
         <!-- E-Wallet -->
         <div v-if="method === 'EWALLET'" class="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center">
            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Scan QRIS Dibawah</p>

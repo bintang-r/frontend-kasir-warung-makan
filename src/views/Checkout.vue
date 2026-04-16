@@ -19,7 +19,7 @@
           </svg>
            Metode Makan
         </h3>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
            <div 
              @click="orderType = 'DINE_IN'"
              class="relative bg-white p-4 rounded-2xl border-2 transition-all cursor-pointer group active:scale-95"
@@ -56,32 +56,7 @@
               </div>
            </div>
 
-           <div 
-             @click="orderType = 'DELIVERY'"
-             class="relative bg-white p-4 rounded-2xl border-2 transition-all cursor-pointer group active:scale-95"
-             :class="orderType === 'DELIVERY' ? 'border-primary shadow-premium' : 'border-gray-100 opacity-60'"
-           >
-              <div class="bg-blue-50 w-8 h-8 rounded-xl flex items-center justify-center text-blue-600 mb-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-                </svg>
-              </div>
-              <p class="font-bold text-gray-900 text-[10px]">Antar</p>
-              <div v-if="orderType === 'DELIVERY'" class="absolute -top-1 -right-1 bg-primary text-white p-1 rounded-full shadow-lg">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-2.5 h-2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              </div>
            </div>
-        </div>
-
-        <div v-if="orderType === 'DELIVERY'" class="mt-6 transition-all animate-down">
-           <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alamat Pengiriman</h4>
-           <textarea 
-             v-model="address" 
-             placeholder="Masukkan alamat lengkap dunsanak..."
-             class="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-sm focus:border-primary outline-none transition-all h-24"
-           ></textarea>
         </div>
       </section>
 
@@ -112,27 +87,6 @@
             </div>
             <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" :class="paymentMethod === 'CASH' ? 'border-primary ring-4 ring-primary/10' : 'border-gray-200'">
               <div v-if="paymentMethod === 'CASH'" class="w-3 h-3 bg-primary rounded-full animate-scale-in"></div>
-            </div>
-          </div>
-
-          <div 
-            @click="paymentMethod = 'TRANSFER'"
-            class="flex items-center justify-between p-4 bg-white rounded-2xl border-2 transition-all cursor-pointer group active:scale-[0.98]"
-            :class="paymentMethod === 'TRANSFER' ? 'border-primary shadow-premium' : 'border-gray-50 opacity-60'"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-                </svg>
-              </div>
-              <div>
-                <p class="font-bold text-gray-900 text-sm">Transfer Bank</p>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">BCA, Mandiri, BRI</p>
-              </div>
-            </div>
-            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" :class="paymentMethod === 'TRANSFER' ? 'border-primary ring-4 ring-primary/10' : 'border-gray-200'">
-              <div v-if="paymentMethod === 'TRANSFER'" class="w-3 h-3 bg-primary rounded-full animate-scale-in"></div>
             </div>
           </div>
 
@@ -285,20 +239,7 @@ const submitOrder = async () => {
     return;
   }
   
-  // 1. Enforcement for Delivery (Check Auth)
-  if (orderType.value === 'DELIVERY') {
-    if (!authStore.isAuthenticated) {
-       toast.value?.display('Silakan masuak (login) talabiah dahulu untuak layanan Antar.', 'warning');
-       setTimeout(() => {
-         router.push({ path: '/login', query: { redirect: 'checkout', orderType: 'DELIVERY' } });
-       }, 1500);
-       return;
-    }
-    if (!address.value.trim()) {
-      toast.value?.display('Alamat pengiriman harus diisi dunsanak.', 'error');
-      return;
-    }
-  }
+  // 1. Check Auth logic removed since Delivery is removed
 
   isSubmitting.value = true;
   try {
