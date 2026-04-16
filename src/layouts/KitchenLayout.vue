@@ -2,8 +2,9 @@
   <div class="min-h-screen" style="background: #0f0f0f;">
     <!-- Top Navbar -->
     <header class="kitchen-header fixed top-0 left-0 right-0 z-50 flex items-stretch" style="height: 64px;">
-      <!-- Brand -->
-      <div class="flex items-center gap-3 px-6 border-r border-white/10 flex-shrink-0">
+
+      <!-- Brand (fixed left) -->
+      <div class="flex items-center gap-3 px-5 border-r border-white/10 flex-shrink-0">
         <div class="bg-primary p-1.5 rounded-lg">
           <i class="fa-solid fa-fire-burner text-white text-sm"></i>
         </div>
@@ -13,21 +14,22 @@
         </div>
       </div>
 
-      <!-- Customer Order Tabs -->
-      <div class="flex-1 flex items-center overflow-x-auto scrollbar-hide px-2 gap-1">
-        <!-- "Semua" tab -->
+      <!-- "Semua Pesanan" button — FIXED, never scrolls -->
+      <div class="flex items-center px-2 border-r border-white/10 flex-shrink-0">
         <button
-          @click="selectedOrderId = null"
+          @click="selectedOrderId = null; searchQuery = ''"
           class="flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
           :class="selectedOrderId === null ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-white/40 hover:text-white hover:bg-white/5'"
         >
           <i class="fa-solid fa-border-all mr-1.5"></i>
           Semua Pesanan
         </button>
+      </div>
 
-        <!-- Per-order tabs for active orders -->
+      <!-- Scrollable order tabs (top 10, filtered by search) -->
+      <div class="flex-1 flex items-center overflow-x-auto scrollbar-hide px-2 gap-1 min-w-0">
         <button
-          v-for="order in activeOrders"
+          v-for="order in visibleOrderTabs"
           :key="order.id"
           @click="selectedOrderId = order.id"
           class="flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap relative"
@@ -36,29 +38,53 @@
             : 'text-white/40 hover:text-white hover:bg-white/5'"
         >
           <span
-            class="absolute top-1 right-1 w-2 h-2 rounded-full"
+            class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
             :class="statusDot(order.status)"
           ></span>
           <i class="fa-solid fa-bowl-food mr-1.5 text-[9px]"></i>
-          Order #{{ order.id }}
-          <span class="ml-1 opacity-60">· {{ order.table?.name || 'T.Away' }}</span>
+          #{{ order.id }}
+          <span class="ml-1 opacity-50 text-[9px]">{{ (order.user?.name || 'Guest').split(' ')[0] }}</span>
         </button>
 
-        <div v-if="activeOrders.length === 0" class="px-4 text-white/20 text-[10px] font-black uppercase tracking-widest">
+        <!-- Overflow badge -->
+        <div
+          v-if="filteredActiveOrders.length > 10"
+          class="flex-shrink-0 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+        >
+          +{{ filteredActiveOrders.length - 10 }} lainnya
+        </div>
+
+        <div v-if="filteredActiveOrders.length === 0 && searchQuery && activeOrders.length > 0" class="px-3 text-white/20 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+          Tidak ada hasil untuk "{{ searchQuery }}"
+        </div>
+        <div v-if="activeOrders.length === 0" class="px-3 text-white/20 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
           Tidak ada pesanan aktif
         </div>
       </div>
 
-      <!-- Right: Profile + Refresh -->
+      <!-- Search + Live + Profile (fixed right) -->
       <div class="flex items-center gap-3 px-4 border-l border-white/10 flex-shrink-0">
-        <!-- Auto-refresh indicator -->
-        <div class="flex items-center gap-2 text-white/30 text-[9px] font-black uppercase tracking-widest">
+
+        <!-- Search input -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-[10px]"></i>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Cari pelanggan..."
+            class="kitchen-search pl-8 pr-3 py-2 text-[10px] font-bold"
+            style="width: 160px;"
+          />
+        </div>
+
+        <!-- Live indicator -->
+        <div class="flex items-center gap-1.5 text-white/25 text-[9px] font-black uppercase tracking-widest flex-shrink-0">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
           LIVE
         </div>
 
         <!-- Profile Dropdown -->
-        <div class="relative" ref="dropdownRef">
+        <div class="relative flex-shrink-0" ref="dropdownRef">
           <button
             @click="dropdownOpen = !dropdownOpen"
             class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 transition-all"
@@ -67,7 +93,7 @@
             <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
               <i class="fa-solid fa-user-chef text-white text-xs"></i>
             </div>
-            <span class="text-white/80 text-[10px] font-black uppercase tracking-widest hidden sm:block">{{ user?.name?.split(' ')[0] }}</span>
+            <span class="text-white/80 text-[10px] font-black uppercase tracking-widest hidden sm:block max-w-[80px] truncate">{{ user?.name?.split(' ')[0] }}</span>
             <i class="fa-solid fa-chevron-down text-white/30 text-[10px]" :class="{ 'rotate-180': dropdownOpen }"></i>
           </button>
 
@@ -111,7 +137,13 @@
           leave-from-class="opacity-100"
           leave-to-class="opacity-0"
         >
-          <component :is="Component" :selected-order-id="selectedOrderId" :orders="activeOrders" @refresh="fetchOrders" />
+          <component
+            :is="Component"
+            :selected-order-id="selectedOrderId"
+            :orders="filteredActiveOrders"
+            :search-query="searchQuery"
+            @refresh="fetchOrders"
+          />
         </transition>
       </router-view>
     </main>
@@ -135,12 +167,26 @@ const dropdownOpen = ref(false);
 const dropdownRef = ref(null);
 const selectedOrderId = ref(null);
 const orders = ref([]);
+const searchQuery = ref('');
 const kitchenToast = ref(null);
 provide('kitchenToast', kitchenToast);
 
+// All active orders
 const activeOrders = computed(() =>
   orders.value.filter(o => ['PENDING', 'CONFIRMED', 'COOKING', 'READY'].includes(o.status))
 );
+
+// Filtered by search query
+const filteredActiveOrders = computed(() => {
+  if (!searchQuery.value.trim()) return activeOrders.value;
+  const q = searchQuery.value.toLowerCase();
+  return activeOrders.value.filter(o =>
+    (o.user?.name || '').toLowerCase().includes(q)
+  );
+});
+
+// Top 10 for tabs in navbar
+const visibleOrderTabs = computed(() => filteredActiveOrders.value.slice(0, 10));
 
 const statusDot = (status) => ({
   'bg-blue-400 animate-pulse': status === 'CONFIRMED',
@@ -183,8 +229,9 @@ onUnmounted(() => {
 
 <style scoped>
 .kitchen-header {
-  background: rgba(10, 10, 10, 0.95);
+  background: rgba(10, 10, 10, 0.97);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -192,5 +239,20 @@ onUnmounted(() => {
 .dropdown-enter-active { transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
 .dropdown-leave-active { transition: all 0.15s ease-in; }
 .dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-8px) scale(0.96); }
-.rotate-180 { transform: rotate(180deg); }
+.rotate-180 { transform: rotate(180deg); transition: transform .2s ease; }
+
+.kitchen-search {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+  transition: all .2s ease;
+}
+.kitchen-search::placeholder { color: rgba(255,255,255,.2); }
+.kitchen-search:focus {
+  border-color: rgba(227, 30, 36, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.1);
+}
 </style>

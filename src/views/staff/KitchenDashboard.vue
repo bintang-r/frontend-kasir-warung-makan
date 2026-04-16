@@ -1,142 +1,242 @@
 <template>
-  <div class="space-y-8">
-    <!-- Header Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-gray-900 p-8 rounded-[32px] text-white shadow-2xl overflow-hidden relative group">
-           <div class="absolute inset-0 bg-primary/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
-           <i class="fa-solid fa-list-check absolute -right-4 -bottom-4 text-white/5 text-8xl"></i>
-           <p class="text-[10px] font-black uppercase tracking-widest opacity-60 relative z-10">Antrian Masuk</p>
-           <h3 class="text-4xl font-black mt-2 relative z-10">{{ ordersByStatus.CONFIRMED.length }}</h3>
+  <div class="kitchen-app p-6 min-h-screen">
+
+    <!-- ===== SEMUA (Overview Board) ===== -->
+    <div v-if="!selectedOrderId" class="h-full">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-black text-white tracking-tight">Papan Dapur</h1>
+          <p class="text-white/30 text-xs font-bold uppercase tracking-widest mt-1">
+            {{ activeOrders.length }} pesanan aktif · drag kartu untuk pindah status
+          </p>
         </div>
-        <div class="bg-orange-500 p-8 rounded-[32px] text-white shadow-lg overflow-hidden relative group">
-           <i class="fa-solid fa-fire-burner absolute -right-4 -bottom-4 text-white/5 text-8xl"></i>
-           <p class="text-[10px] font-black uppercase tracking-widest opacity-60 relative z-10">Proses Masak</p>
-           <h3 class="text-4xl font-black mt-2 relative z-10">{{ ordersByStatus.COOKING.length }}</h3>
+        <div class="flex gap-3">
+          <div class="stat-chip bg-blue-500/10 border-blue-500/30 text-blue-400">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            {{ grouped.CONFIRMED.length }} Antri
+          </div>
+          <div class="stat-chip bg-orange-500/10 border-orange-500/30 text-orange-400">
+            <i class="fa-solid fa-fire-burner"></i>
+            {{ grouped.COOKING.length }} Masak
+          </div>
+          <div class="stat-chip bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+            <i class="fa-solid fa-utensils"></i>
+            {{ grouped.READY.length }} Siap
+          </div>
         </div>
-        <div class="bg-emerald-500 p-8 rounded-[32px] text-white shadow-lg overflow-hidden relative group">
-           <i class="fa-solid fa-utensils absolute -right-4 -bottom-4 text-white/5 text-8xl"></i>
-           <p class="text-[10px] font-black uppercase tracking-widest opacity-60 relative z-10">Siap Saji</p>
-           <h3 class="text-4xl font-black mt-2 relative z-10">{{ ordersByStatus.READY.length }}</h3>
+      </div>
+
+      <!-- Kanban Board -->
+      <div class="grid grid-cols-3 gap-6" style="height: calc(100vh - 160px);">
+        <!-- Col: CONFIRMED (Antrian Baru) -->
+        <div
+          class="kanban-col"
+          @dragover.prevent="onDragOver($event, 'CONFIRMED')"
+          @dragleave="onDragLeave"
+          @drop="onDrop($event, 'CONFIRMED')"
+          :class="{ 'drop-target': dragTarget === 'CONFIRMED' }"
+        >
+          <div class="kanban-col-header">
+            <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+            <span>Antrian Baru</span>
+            <span class="col-count">{{ grouped.CONFIRMED.length }}</span>
+          </div>
+          <div class="kanban-cards">
+            <div
+              v-for="order in grouped.CONFIRMED"
+              :key="order.id"
+              class="order-card"
+              draggable="true"
+              @dragstart="onDragStart($event, order)"
+              @dragend="onDragEnd"
+            >
+              <!-- Order Card -->  
+              <div class="order-card-inner">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff; margin-bottom:4px;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                    <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
+                  </div>
+                  <i class="fa-solid fa-grip-dots-vertical" style="color:rgba(255,255,255,.15); font-size:14px;"></i>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px; background:rgba(255,255,255,.03); padding:10px; border-radius:12px;">
+                  <div v-for="item in order.items" :key="item.id" style="display:flex; gap:8px; align-items:center;">
+                    <span style="font-size:11px; font-weight:900; color:#3b82f6; min-width:20px;">{{ item.qty }}x</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,.7);">{{ item.menu?.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Empty state -->
+            <div v-if="grouped.CONFIRMED.length === 0" class="empty-col-state">
+              <i class="fa-solid fa-inbox" style="font-size:36px; margin-bottom:12px;"></i>
+              <p>Santai dulu,<br/>belum ada antrian</p>
+            </div>
+          </div>
         </div>
-        <div class="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm flex flex-col justify-center">
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Waktu Rata-rata</p>
-            <p class="text-xl font-black text-gray-900 mt-1">12 <span class="text-xs text-gray-400 font-bold">Menit/Order</span></p>
+
+        <!-- Col: COOKING -->
+        <div
+          class="kanban-col"
+          @dragover.prevent="onDragOver($event, 'COOKING')"
+          @dragleave="onDragLeave"
+          @drop="onDrop($event, 'COOKING')"
+          :class="{ 'drop-target drop-target--orange': dragTarget === 'COOKING' }"
+        >
+          <div class="kanban-col-header">
+            <div class="w-2 h-2 rounded-full bg-orange-500 animate-bounce"></div>
+            <span>Sedang Dimasak</span>
+            <span class="col-count">{{ grouped.COOKING.length }}</span>
+          </div>
+          <div class="kanban-cards">
+            <div
+              v-for="order in grouped.COOKING"
+              :key="order.id"
+              class="order-card"
+              draggable="true"
+              @dragstart="onDragStart($event, order)"
+              @dragend="onDragEnd"
+            >
+              <!-- Order Card -->
+              <div class="order-card-inner">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff; margin-bottom:4px;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                    <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
+                  </div>
+                  <i class="fa-solid fa-grip-dots-vertical" style="color:rgba(255,255,255,.15); font-size:14px;"></i>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px; background:rgba(255,255,255,.03); padding:10px; border-radius:12px;">
+                  <div v-for="item in order.items" :key="item.id" style="display:flex; gap:8px; align-items:center;">
+                    <span style="font-size:11px; font-weight:900; color:#f97316; min-width:20px;">{{ item.qty }}x</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,.7);">{{ item.menu?.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="grouped.COOKING.length === 0" class="empty-col-state">
+              <i class="fa-solid fa-fire" style="font-size:36px; margin-bottom:12px;"></i>
+              <p>Seret pesanan ke sini<br/>untuk mulai masak</p>
+            </div>
+          </div>
         </div>
+
+        <!-- Col: READY -->
+        <div
+          class="kanban-col"
+          @dragover.prevent="onDragOver($event, 'READY')"
+          @dragleave="onDragLeave"
+          @drop="onDrop($event, 'READY')"
+          :class="{ 'drop-target drop-target--green': dragTarget === 'READY' }"
+        >
+          <div class="kanban-col-header">
+            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+            <span>Siap Saji</span>
+            <span class="col-count">{{ grouped.READY.length }}</span>
+          </div>
+          <div class="kanban-cards">
+            <div
+              v-for="order in grouped.READY"
+              :key="order.id"
+              class="order-card"
+              draggable="true"
+              @dragstart="onDragStart($event, order)"
+              @dragend="onDragEnd"
+            >
+              <!-- Order Card -->
+              <div class="order-card-inner">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff; margin-bottom:4px;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                    <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
+                  </div>
+                  <i class="fa-solid fa-grip-dots-vertical" style="color:rgba(255,255,255,.15); font-size:14px;"></i>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px; background:rgba(255,255,255,.03); padding:10px; border-radius:12px;">
+                  <div v-for="item in order.items" :key="item.id" style="display:flex; gap:8px; align-items:center;">
+                    <span style="font-size:11px; font-weight:900; color:#10b981; min-width:20px;">{{ item.qty }}x</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,.7);">{{ item.menu?.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="grouped.READY.length === 0" class="empty-col-state">
+              <i class="fa-solid fa-check-circle" style="font-size:36px; margin-bottom:12px;"></i>
+              <p>Belum ada hidangan<br/>yang siap saji</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- 1. QUEUE (Confirmed) -->
-      <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm flex flex-col h-[750px]">
-        <div class="flex justify-between items-center mb-8">
-           <div class="flex items-center gap-3">
-              <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-              <h3 class="text-lg font-black text-gray-900 tracking-tight">Antrian Baru</h3>
-           </div>
-           <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ ordersByStatus.CONFIRMED.length }} Unit</span>
+    <!-- ===== DETAIL VIEW (single order selected from navbar) ===== -->
+    <div v-else-if="currentOrder" class="max-w-2xl mx-auto pt-4">
+      <!-- Back hint -->
+      <p class="text-white/20 text-[10px] font-black uppercase tracking-widest mb-6">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Pilih "Semua Pesanan" di navbar untuk kembali ke papan
+      </p>
+
+      <!-- Order Detail Card -->
+      <div class="detail-card">
+        <!-- Header -->
+        <div class="flex items-start justify-between mb-8">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-widest mb-2" :class="statusTextColor(currentOrder.status)">
+              ● {{ statusLabel(currentOrder.status) }}
+            </p>
+            <h2 class="text-3xl font-black text-white tracking-tight">
+              Order #{{ currentOrder.id }}
+            </h2>
+            <p class="text-white/40 text-xs font-bold mt-1">
+              {{ currentOrder.table?.name || 'Takeaway' }} · {{ formatTime(currentOrder.createdAt) }}
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-white/30 text-[9px] font-black uppercase tracking-widest">Pelanggan</p>
+            <p class="text-white font-black text-sm mt-1">{{ currentOrder.user?.name || 'Guest' }}</p>
+          </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
-           <div v-for="order in ordersByStatus.CONFIRMED" :key="order.id" class="bg-blue-50/30 p-6 rounded-[32px] border-2 border-transparent hover:border-blue-100 transition-all flex flex-col gap-5 group">
-              <div class="flex justify-between items-start">
-                 <div>
-                    <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest leading-none">#{{ order.id }} &bull; {{ formatTime(order.createdAt) }}</p>
-                    <h4 class="text-xl font-black text-gray-900 mt-2">{{ order.table?.name || 'Area Takeaway' }}</h4>
-                 </div>
-                 <button 
-                   @click="updateStatus(order.id, 'COOKING')"
-                   class="bg-blue-600 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
-                 >
-                   Masak
-                 </button>
-              </div>
-              <div class="space-y-3 bg-white/60 p-4 rounded-2xl">
-                 <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center">
-                    <p class="text-xs font-bold text-gray-700">
-                      <span class="text-blue-600 font-black mr-3 text-sm">{{ item.qty }}x</span> 
-                      {{ item.menu?.name }}
-                    </p>
-                 </div>
-              </div>
-              <div v-if="order.address" class="text-[10px] font-bold text-gray-400 italic">
-                 Catatan: {{ order.address }}
-              </div>
-           </div>
-           <div v-if="ordersByStatus.CONFIRMED.length === 0" class="h-full flex flex-col items-center justify-center text-center opacity-20">
-              <i class="fa-solid fa-receipt text-6xl mb-4"></i>
-              <p class="text-xs font-black uppercase tracking-widest">Santai sejenak,<br/>antrian sedang kosong</p>
-           </div>
-        </div>
-      </div>
-
-      <!-- 2. PROCESSING (Cooking) -->
-      <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm flex flex-col h-[750px]">
-        <div class="flex justify-between items-center mb-8">
-           <div class="flex items-center gap-3">
-              <div class="w-2 h-2 rounded-full bg-orange-500 animate-bounce"></div>
-              <h3 class="text-lg font-black text-gray-900 tracking-tight">Sedang Dimasak</h3>
-           </div>
-           <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ ordersByStatus.COOKING.length }} Unit</span>
+        <!-- Item List -->
+        <div class="space-y-3 mb-8">
+          <p class="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">Daftar Menu</p>
+          <div
+            v-for="item in currentOrder.items"
+            :key="item.id"
+            class="item-row"
+          >
+            <div class="item-qty">{{ item.qty }}x</div>
+            <div class="flex-1">
+              <p class="text-white font-black text-sm">{{ item.menu?.name }}</p>
+              <p class="text-white/30 text-[10px] font-bold">{{ item.menu?.category?.name }}</p>
+            </div>
+          </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
-           <div v-for="order in ordersByStatus.COOKING" :key="order.id" class="bg-orange-50/30 p-6 rounded-[32px] border-2 border-transparent hover:border-orange-100 transition-all flex flex-col gap-5 group">
-              <div class="flex justify-between items-start">
-                 <div>
-                    <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest leading-none">#{{ order.id }} &bull; {{ formatTime(order.createdAt) }}</p>
-                    <h4 class="text-xl font-black text-gray-900 mt-2">{{ order.table?.name || 'Area Takeaway' }}</h4>
-                 </div>
-                 <button 
-                   @click="updateStatus(order.id, 'READY')"
-                   class="bg-accent text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all"
-                 >
-                   Siap
-                 </button>
-              </div>
-              <div class="space-y-3 bg-white/60 p-4 rounded-2xl">
-                 <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center">
-                    <p class="text-xs font-bold text-gray-700">
-                      <span class="text-orange-600 font-black mr-3 text-sm">{{ item.qty }}x</span> 
-                      {{ item.menu?.name }}
-                    </p>
-                 </div>
-              </div>
-           </div>
-        </div>
-      </div>
-
-      <!-- 3. READY (Ready) -->
-      <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm flex flex-col h-[750px]">
-        <div class="flex justify-between items-center mb-8">
-           <div class="flex items-center gap-3">
-              <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-              <h3 class="text-lg font-black text-gray-900 tracking-tight">Siap Saji</h3>
-           </div>
-           <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ ordersByStatus.READY.length }} Unit</span>
-        </div>
-
-        <div class="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
-           <div v-for="order in ordersByStatus.READY" :key="order.id" class="bg-emerald-50/20 p-6 rounded-[32px] border border-gray-50 flex flex-col gap-4">
-              <div class="flex justify-between items-center">
-                 <div>
-                    <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-none">#{{ order.id }}</p>
-                    <h4 class="text-sm font-black text-gray-900 mt-1">{{ order.table?.name || 'Takeaway' }}</h4>
-                 </div>
-                 <button 
-                   @click="updateStatus(order.id, 'COMPLETED')"
-                   class="text-[9px] font-black uppercase text-emerald-600 hover:underline tracking-widest"
-                 >
-                   Selesaikan
-                 </button>
-              </div>
-              <div class="flex -space-x-2">
-                 <div v-for="item in order.items.slice(0,3)" :key="item.id" class="w-8 h-8 rounded-lg border-2 border-white overflow-hidden shadow-sm">
-                    <img :src="item.menu?.image" class="w-full h-full object-cover grayscale" />
-                 </div>
-                 <div v-if="order.items.length > 3" class="w-8 h-8 rounded-lg border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400">
-                   +{{ order.items.length - 3 }}
-                 </div>
-              </div>
-           </div>
+        <!-- Status Progression — Drag or Click Buttons -->
+        <div>
+          <p class="text-[10px] font-black text-white/30 uppercase tracking-widest mb-5">Ubah Status Pesanan</p>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="(step, idx) in statusSteps"
+              :key="step.value"
+              @click="confirmStatusChange(currentOrder, step.value)"
+              :disabled="!canTransitionTo(currentOrder.status, step.value)"
+              class="status-step-btn"
+              :class="{
+                'active': currentOrder.status === step.value,
+                'done': isStatusBefore(step.value, currentOrder.status),
+                'disabled': !canTransitionTo(currentOrder.status, step.value) && currentOrder.status !== step.value
+              }"
+            >
+              <i :class="step.icon + ' mb-1'"></i>
+              <span>{{ step.label }}</span>
+            </button>
+          </div>
+          <p class="text-white/20 text-[9px] font-bold mt-4 uppercase tracking-widest">
+            <i class="fa-solid fa-circle-info mr-1"></i>
+            Klik status berikutnya untuk memperbarui, atau seret kartu di papan utama
+          </p>
         </div>
       </div>
     </div>
@@ -146,74 +246,316 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
+import { ref, computed, defineProps, defineEmits } from 'vue';
 import api from '../../services/api';
 import NotificationToast from '../../components/NotificationToast.vue';
 
-const orders = ref([]);
+// ── Props from KitchenLayout ──────────────────────────────────────────────
+const props = defineProps({
+  selectedOrderId: { default: null },
+  orders: { type: Array, default: () => [] }
+});
+
+const emit = defineEmits(['refresh']);
 const toast = ref(null);
-let pollInterval = null;
 
-const ordersByStatus = computed(() => {
-  const groups = { CONFIRMED: [], COOKING: [], READY: [] };
-  orders.value.forEach(order => {
-    if (groups[order.status]) groups[order.status].push(order);
+// ── Computed helpers ──────────────────────────────────────────────────────
+const activeOrders = computed(() =>
+  props.orders.filter(o => ['PENDING', 'CONFIRMED', 'COOKING', 'READY'].includes(o.status))
+);
+
+const grouped = computed(() => {
+  const g = { CONFIRMED: [], COOKING: [], READY: [] };
+  activeOrders.value.forEach(o => {
+    const key = o.status === 'PENDING' ? 'CONFIRMED' : o.status;
+    if (g[key] !== undefined) g[key].push(o);
   });
-  return groups;
+  return g;
 });
 
-// Sound notification for new orders
-watch(() => ordersByStatus.value.CONFIRMED.length, (newCount, oldCount) => {
-  if (newCount > oldCount) {
-    playNotificationSound();
-    toast.value?.display(`Ada ${newCount - oldCount} pesanan baru masuk! 🥟`, 'info');
-  }
-});
+const currentOrder = computed(() =>
+  props.orders.find(o => String(o.id) === String(props.selectedOrderId)) || null
+);
 
-const fetchOrders = async () => {
+// ── Status logic ──────────────────────────────────────────────────────────
+const statusSteps = [
+  { value: 'CONFIRMED', label: 'Antrian', icon: 'fa-solid fa-clock-rotate-left' },
+  { value: 'COOKING',   label: 'Dimasak', icon: 'fa-solid fa-fire-burner' },
+  { value: 'READY',     label: 'Siap Saji', icon: 'fa-solid fa-utensils' },
+  { value: 'COMPLETED', label: 'Selesai', icon: 'fa-solid fa-check' },
+];
+const statusOrder = ['PENDING', 'CONFIRMED', 'COOKING', 'READY', 'COMPLETED'];
+
+const canTransitionTo = (current, target) => {
+  const ci = statusOrder.indexOf(current);
+  const ti = statusOrder.indexOf(target);
+  return ti === ci + 1;
+};
+
+const isStatusBefore = (step, current) => {
+  return statusOrder.indexOf(step) < statusOrder.indexOf(current);
+};
+
+const statusLabel = (status) => ({
+  PENDING: 'Menunggu', CONFIRMED: 'Antrian', COOKING: 'Dimasak', READY: 'Siap Saji', COMPLETED: 'Selesai'
+}[status] || status);
+
+const statusTextColor = (status) => ({
+  PENDING: 'text-yellow-400', CONFIRMED: 'text-blue-400',
+  COOKING: 'text-orange-400', READY: 'text-emerald-400', COMPLETED: 'text-gray-400'
+}[status]);
+
+// ── Update status ─────────────────────────────────────────────────────────
+const handleStatusUpdate = async (orderId, newStatus) => {
   try {
-    const res = await api.get('/orders/all');
-    orders.value = res.data;
-  } catch (err) {
-    console.error('Failed to fetch kitchen orders', err);
+    await api.put(`/orders/${orderId}/status`, { status: newStatus });
+    toast.value?.display(`Pesanan #${orderId} → ${statusLabel(newStatus)} 🍽️`);
+    emit('refresh');
+  } catch (e) {
+    toast.value?.display('Gagal mengubah status pesanan', 'error');
   }
 };
 
-const updateStatus = async (orderId, status) => {
-  try {
-    await api.put(`/orders/${orderId}/status`, { status });
-    toast.value?.display(`Pesanan #${orderId} kini ${status === 'COOKING' ? 'sedang dimasak' : 'siap diantar'}`);
-    fetchOrders(); // refresh
-  } catch (err) {
-    console.error('Status update failed', err);
-    toast.value?.display('Gagal memperbarui status', 'error');
+const confirmStatusChange = (order, newStatus) => {
+  if (!canTransitionTo(order.status, newStatus)) return;
+  handleStatusUpdate(order.id, newStatus);
+};
+
+// ── Drag and Drop ─────────────────────────────────────────────────────────
+const draggingOrder = ref(null);
+const dragTarget = ref(null);
+
+const onDragStart = (event, order) => {
+  draggingOrder.value = order;
+  event.dataTransfer.effectAllowed = 'move';
+  event.currentTarget.classList.add('dragging');
+};
+
+const onDragEnd = (event) => {
+  event.currentTarget.classList.remove('dragging');
+  dragTarget.value = null;
+  draggingOrder.value = null;
+};
+
+const onDragOver = (event, col) => {
+  dragTarget.value = col;
+  event.dataTransfer.dropEffect = 'move';
+};
+
+const onDragLeave = () => {
+  dragTarget.value = null;
+};
+
+const onDrop = async (event, targetStatus) => {
+  dragTarget.value = null;
+  if (!draggingOrder.value) return;
+
+  const order = draggingOrder.value;
+  draggingOrder.value = null;
+
+  const statusMap = { CONFIRMED: 'CONFIRMED', COOKING: 'COOKING', READY: 'READY' };
+  const newStatus = statusMap[targetStatus];
+
+  if (!newStatus || order.status === newStatus) return;
+
+  const ci = statusOrder.indexOf(order.status === 'PENDING' ? 'CONFIRMED' : order.status);
+  const ti = statusOrder.indexOf(newStatus);
+
+  if (ti !== ci + 1) {
+    toast.value?.display('Status hanya bisa maju satu langkah', 'error');
+    return;
   }
+
+  await handleStatusUpdate(order.id, newStatus);
 };
 
-const playNotificationSound = () => {
-  const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-  audio.volume = 0.5;
-  audio.play().catch(e => console.log('Audio play blocked'));
-};
-
-const formatTime = (dateStr) => {
-  return new Intl.DateTimeFormat('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(dateStr));
-};
-
-onMounted(() => {
-  fetchOrders();
-  pollInterval = setInterval(fetchOrders, 10000);
-});
-
-onUnmounted(() => {
-  if (pollInterval) clearInterval(pollInterval);
-});
+// ── Helpers ───────────────────────────────────────────────────────────────
+const formatTime = (dateStr) =>
+  new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date(dateStr));
 </script>
 
 <style scoped>
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.kitchen-app {
+  background: #0f0f0f;
+  color: #fff;
+}
+
+/* Stats chips */
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+/* Kanban board */
+.kanban-col {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all .2s ease;
+}
+
+.kanban-col.drop-target {
+  border-color: rgba(59,130,246,.5);
+  background: rgba(59,130,246,.06);
+  box-shadow: 0 0 0 2px rgba(59,130,246,.15);
+}
+.kanban-col.drop-target--orange {
+  border-color: rgba(249,115,22,.5);
+  background: rgba(249,115,22,.06);
+  box-shadow: 0 0 0 2px rgba(249,115,22,.15);
+}
+.kanban-col.drop-target--green {
+  border-color: rgba(16,185,129,.5);
+  background: rgba(16,185,129,.06);
+  box-shadow: 0 0 0 2px rgba(16,185,129,.15);
+}
+
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: rgba(255,255,255,.7);
+  flex-shrink: 0;
+}
+.col-count {
+  margin-left: auto;
+  background: rgba(255,255,255,.08);
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.kanban-cards {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: none;
+}
+.kanban-cards::-webkit-scrollbar { display: none; }
+
+.order-card {
+  transition: all .2s ease;
+}
+.order-card.dragging {
+  opacity: .4;
+  transform: scale(.97);
+}
+
+.order-card-inner {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: all .2s ease;
+}
+.order-card-inner:hover {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.12);
+}
+
+/* Detail view */
+.detail-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 32px;
+  padding: 40px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,.03);
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.item-qty {
+  font-size: 16px;
+  font-weight: 900;
+  color: #f97316;
+  min-width: 28px;
+}
+
+/* Status step buttons */
+.status-step-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  color: rgba(255,255,255,.25);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.status-step-btn.done {
+  background: rgba(16,185,129,.1);
+  border-color: rgba(16,185,129,.2);
+  color: rgba(16,185,129,.6);
+}
+.status-step-btn.active {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.3);
+  color: #fff;
+}
+.status-step-btn:not(.disabled):not(.active):not(.done):hover {
+  border-color: rgba(255,255,255,.3);
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  transform: translateY(-1px);
+}
+.status-step-btn.disabled {
+  opacity: .25;
+  cursor: not-allowed;
+}
+
+.empty-col-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: .15;
+  padding: 40px 20px;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  line-height: 1.8;
+}
 </style>

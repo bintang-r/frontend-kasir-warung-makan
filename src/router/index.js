@@ -29,6 +29,7 @@ const AdminSystemLogs = () => import('../views/staff/AdminSystemLogs.vue');
 
 const CashierDashboard = () => import('../views/staff/CashierDashboard.vue');
 const KitchenDashboard = () => import('../views/staff/KitchenDashboard.vue');
+const KitchenLayout = () => import('../layouts/KitchenLayout.vue');
 
 const routes = [
   { path: '/', component: Home, name: 'Home' },
@@ -116,11 +117,20 @@ const routes = [
         name: 'CashierDashboard', 
         meta: { role: 'KASIR', title: 'Panel Verifikasi Kasir' } 
       },
-      { 
-        path: 'kitchen', 
-        component: KitchenDashboard, 
-        name: 'KitchenDashboard', 
-        meta: { role: 'KITCHEN', title: 'Manajemen Operasional Dapur' } 
+    ]
+  },
+
+  // ── Kitchen – uses its own full-screen layout (no sidebar) ──
+  {
+    path: '/staff',
+    component: KitchenLayout,
+    meta: { requiresAuth: true, isStaffOnly: true },
+    children: [
+      {
+        path: 'kitchen',
+        component: KitchenDashboard,
+        name: 'KitchenDashboard',
+        meta: { role: 'KITCHEN', title: 'Manajemen Operasional Dapur' }
       },
     ]
   }
