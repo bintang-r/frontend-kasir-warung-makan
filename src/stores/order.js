@@ -75,6 +75,16 @@ export const useOrderStore = defineStore('order', () => {
     }
   };
 
+  const verifyVoucher = async (code) => {
+    try {
+      const response = await api.get(`/promos/vouchers/verify/${code}`);
+      return response.data;
+    } catch (e) {
+      console.error('Error verifying voucher', e);
+      throw e;
+    }
+  };
+
   return {
     currentOrder,
     orderHistory,
@@ -83,6 +93,7 @@ export const useOrderStore = defineStore('order', () => {
     getOrderById,
     confirmReceived,
     submitReview,
-    processPayment
+    processPayment,
+    verifyVoucher
   };
 });
