@@ -353,6 +353,155 @@
     </div>
   </div>
 
+  <!-- ===== RECEIPT MODAL (POPUP) ===== -->
+  <div v-if="showReceiptModal && lastOrderSnapshot" class="fixed inset-0 z-[100] flex items-center justify-center p-6 no-print">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" @click="closeReceipt"></div>
+    
+    <!-- Modal Content -->
+    <div class="relative bg-white w-full max-w-sm rounded-[32px] overflow-hidden flex flex-col items-center animate-in fade-in zoom-in duration-300">
+      <div class="p-8 pb-4 text-center">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-check text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-black text-gray-900">Pembayaran Selesai</h3>
+        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Struk siap dicetak</p>
+      </div>
+
+      <!-- Receipt Preview (Visual only for modal, hidden during actual print) -->
+      <div class="w-full px-8 overflow-y-auto max-h-[40vh] py-2">
+        <div class="bg-gray-50 rounded-2xl p-6 border border-dashed border-gray-200 text-[#1a1a1a] font-mono text-[11px] leading-relaxed">
+           <div class="text-center mb-4 pb-4 border-b border-dashed border-gray-200">
+              <p class="font-bold text-[14px]">RM SIANTAR MINANG</p>
+              <p>Jl. Jendral Sudirman No. 123</p>
+              <p>Telp: (021) 555-0123</p>
+           </div>
+           
+           <div class="mb-4">
+              <div class="flex justify-between">
+                <span>Ref: #{{ lastOrderSnapshot.id }}</span>
+                <span>{{ formatTime(new Date()) }}</span>
+              </div>
+              <p>Kasir: {{ (authStore.user?.name || 'Staff') }}</p>
+              <p>Meja: {{ lastOrderSnapshot.table?.name || lastOrderSnapshot.orderType }}</p>
+           </div>
+
+           <div class="space-y-1 mb-4 pb-4 border-b border-dashed border-gray-200">
+              <div v-for="item in lastOrderSnapshot.items" :key="item.id" class="flex justify-between items-start gap-4">
+                 <span class="flex-1">{{ item.qty }}x {{ item.menu?.name }}</span>
+                 <span class="whitespace-nowrap">{{ formatPrice(Number(item.price) * item.qty) }}</span>
+              </div>
+           </div>
+
+           <div class="space-y-1">
+              <div class="flex justify-between font-bold">
+                 <span>TOTAL</span>
+                 <span>Rp {{ formatPrice(lastOrderSnapshot.totalPrice) }}</span>
+              </div>
+              <div class="flex justify-between">
+                 <span>Metode</span>
+                 <span>{{ lastPaymentSnapshot?.method }}</span>
+              </div>
+              <template v-if="lastPaymentSnapshot?.method === 'CASH'">
+                 <div class="flex justify-between">
+                    <span>Bayar</span>
+                    <span>Rp {{ formatPrice(lastPaymentSnapshot.received) }}</span>
+                 </div>
+                 <div class="flex justify-between font-bold border-t border-dashed border-gray-200 pt-1 mt-1">
+                    <span>Kembali</span>
+                    <span>Rp {{ formatPrice(lastPaymentSnapshot.change) }}</span>
+                 </div>
+              </template>
+           </div>
+
+           <div class="mt-6 text-center pt-4 border-t border-dashed border-gray-200 opacity-50">
+              <p>TERIMA KASIH</p>
+              <p>SELAMAT MENIKMATI</p>
+           </div>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="w-full p-8 flex flex-col gap-3">
+        <button 
+          @click="printReceipt"
+          class="w-full bg-primary text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all flex items-center justify-center gap-2"
+        >
+          <i class="fa-solid fa-print"></i> Cetak Struk
+        </button>
+        <button 
+          @click="closeReceipt"
+          class="w-full bg-gray-50 text-gray-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:text-gray-600 transition-all"
+        >
+          Selesai & Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HIDDEN PRINTABLE AREA (Only visible to printer) ===== -->
+  <div id="printable-receipt" class="print-only">
+    <div v-if="lastOrderSnapshot" class="receipt-content">
+       <div class="receipt-header">
+          <h1 class="receipt-title">RM SIANTAR MINANG</h1>
+          <p>Cita Rasa Autentik Minang</p>
+          <p>Jl. Jendral Sudirman No. 123</p>
+          <p>(021) 555-0123</p>
+       </div>
+
+       <div class="receipt-divider">================================</div>
+       
+       <div class="receipt-meta">
+          <p>ID: #{{ lastOrderSnapshot.id }}</p>
+          <p>Tgl: {{ new Date().toLocaleString('id-ID') }}</p>
+          <p>Meja: {{ lastOrderSnapshot.table?.name || lastOrderSnapshot.orderType }}</p>
+          <p>Kasir: {{ authStore.user?.name || 'Staff' }}</p>
+       </div>
+
+       <div class="receipt-divider">--------------------------------</div>
+
+       <div class="receipt-items">
+          <div v-for="item in lastOrderSnapshot.items" :key="item.id" class="receipt-item">
+             <div class="item-name">{{ item.menu?.name }}</div>
+             <div class="item-calc">
+                <span>{{ item.qty }} x {{ formatPrice(item.price) }}</span>
+                <span>{{ formatPrice(Number(item.price) * item.qty) }}</span>
+             </div>
+          </div>
+       </div>
+
+       <div class="receipt-divider">--------------------------------</div>
+
+       <div class="receipt-totals">
+          <div class="total-row main-total">
+             <span>TOTAL</span>
+             <span>Rp {{ formatPrice(lastOrderSnapshot.totalPrice) }}</span>
+          </div>
+          <div class="total-row">
+             <span>{{ lastPaymentSnapshot?.method }}</span>
+             <span>Rp {{ formatPrice(lastOrderSnapshot.totalPrice) }}</span>
+          </div>
+          <template v-if="lastPaymentSnapshot?.method === 'CASH'">
+             <div class="total-row">
+                <span>Bayar</span>
+                <span>Rp {{ formatPrice(lastPaymentSnapshot.received) }}</span>
+             </div>
+             <div class="total-row">
+                <span>Kembali</span>
+                <span>Rp {{ formatPrice(lastPaymentSnapshot.change) }}</span>
+             </div>
+          </template>
+       </div>
+
+       <div class="receipt-divider">================================</div>
+
+       <div class="receipt-footer">
+          <p>Terima kasih atas kunjungan Anda</p>
+          <p>Nikmati hidangan kami!</p>
+       </div>
+    </div>
+  </div>
+
   <NotificationToast ref="toast" />
 </template>
 
@@ -360,7 +509,11 @@
 import { ref, computed, inject } from 'vue';
 import api from '../../services/api';
 import { getImageUrl } from '../../services/api';
+import { useAuthStore } from '../../stores/auth';
 import NotificationToast from '../../components/NotificationToast.vue';
+import printJS from 'print-js'; // Imported library
+
+const authStore = useAuthStore();
 
 const props = defineProps({
   selectedOrderId: { default: null },
@@ -375,6 +528,48 @@ const isProcessing = ref(false);
 const selectedMethod = ref('CASH');
 const cashReceived = ref(0);
 const cashInput = ref('');
+
+// ── Receipt state ──────────────────────────────────────────────────────
+const showReceiptModal = ref(false);
+const lastOrderSnapshot = ref(null);
+const lastPaymentSnapshot = ref(null);
+
+const printReceipt = () => {
+  printJS({
+    printable: 'printable-receipt',
+    type: 'html',
+    targetStyles: ['*'],
+    style: `
+      #printable-receipt {
+        padding: 5mm;
+        width: 80mm;
+        margin: 0 auto;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        line-height: 1.2;
+        color: black;
+        background: white;
+      }
+      .receipt-header { text-align: center; margin-bottom: 10px; }
+      .receipt-title { font-size: 16px; font-weight: bold; margin: 0 0 4px 0; }
+      .receipt-divider { text-align: center; margin: 4px 0; }
+      .receipt-meta { margin-bottom: 8px; }
+      .receipt-meta p { margin: 2px 0; }
+      .receipt-items { margin-bottom: 8px; }
+      .receipt-item { margin-bottom: 6px; }
+      .item-calc { display: flex; justify-content: space-between; }
+      .receipt-totals { margin-top: 8px; }
+      .total-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+      .main-total { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+      .receipt-footer { text-align: center; margin-top: 20px; font-size: 10px; }
+    `
+  });
+};
+
+const closeReceipt = () => {
+  showReceiptModal.value = false;
+  emit('select-order', null); // Go back to list after closing receipt
+};
 
 // ── Current order ──────────────────────────────────────────────────────
 const currentOrder = computed(() =>
@@ -443,19 +638,33 @@ const orderStatusClass = (s) => ({
 // ── Process payment ────────────────────────────────────────────────────
 const processPayment = async () => {
   if (!currentOrder.value) return;
-  if (selectedMethod.value === 'CASH' && change.value < 0) return;
+  if (selectedMethod.value === 'CASH' && cashReceived.value < Number(currentOrder.value.totalPrice)) return;
 
   isProcessing.value = true;
   try {
+    const orderToProcess = JSON.parse(JSON.stringify(currentOrder.value)); // Snapshot before refresh
+    
     await api.post('/payments', {
-      orderId: currentOrder.value.id.toString(),
+      orderId: orderToProcess.id.toString(),
       method: selectedMethod.value,
-      amount: currentOrder.value.totalPrice,
+      amount: orderToProcess.totalPrice,
     });
 
+    // Capture success snapshots for the receipt
+    lastOrderSnapshot.value = orderToProcess;
+    lastPaymentSnapshot.value = {
+      method: selectedMethod.value,
+      received: cashReceived.value,
+      change: selectedMethod.value === 'CASH' ? (cashReceived.value - Number(orderToProcess.totalPrice)) : 0
+    };
+
     const notify = cashierToast || toast;
-    notify.value?.display(`✅ Pembayaran Order #${currentOrder.value.id} berhasil!`);
+    notify.value?.display(`✅ Pembayaran Order #${orderToProcess.id} berhasil!`);
     
+    // Show receipt modal
+    showReceiptModal.value = true;
+
+    // Reset local state
     cashReceived.value = 0;
     cashInput.value = '';
     selectedMethod.value = 'CASH';
@@ -560,4 +769,9 @@ const formatTime = (ds) => new Intl.DateTimeFormat('id-ID', { hour: '2-digit', m
 }
 .pos-confirm-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(227,30,36,.4); }
 .pos-confirm-btn:active:not(:disabled) { transform: scale(.98); }
+
+/* STYLE UNTUK PRINTER PENGGANTI @MEDIA PRINT */
+#printable-receipt {
+  display: none; /* Sembunyikan dari layar biasa, hanya dipanggil printJS */
+}
 </style>
