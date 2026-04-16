@@ -31,8 +31,11 @@
               <p class="text-sm mt-4 text-white/80 font-medium leading-relaxed max-w-xs">{{ getStatusDescription(order.status) }}</p>
            </div>
            
-           <div class="absolute -right-6 -bottom-6 opacity-20 pointer-events-none scale-150">
-              <svg v-if="['PENDING', 'CONFIRMED', 'COOKING'].includes(order.status)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48">
+           <div class="absolute -right-6 -bottom-6 opacity-20 pointer-events-none scale-150 animate-float">
+              <svg v-if="order.status === 'COOKING'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48 animate-cook">
+                 <path d="M11.03 3.97a.75.75 0 0 1 0 1.06l-6.22 6.22H21a.75.75 0 0 1 0 1.5H4.81l6.22 6.22a.75.75 0 1 1-1.06 1.06l-7.5-7.5a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 0Z" />
+              </svg>
+              <svg v-else-if="['PENDING', 'CONFIRMED'].includes(order.status)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48">
                 <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
               </svg>
               <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-48 h-48">
@@ -101,7 +104,7 @@
               
               <!-- Dot -->
               <div class="absolute left-0 top-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500"
-                :class="isStepReached(step.key) ? 'bg-primary shadow-lg shadow-primary/30 ring-4 ring-primary/10' : 'bg-gray-100 ring-4 ring-transparent'">
+                :class="isStepReached(step.key) ? (order.status === step.key ? 'bg-primary timeline-dot-active' : 'bg-primary shadow-sm') : 'bg-gray-100 ring-4 ring-transparent'">
                 <svg v-if="isStepReached(step.key)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor" class="w-3 h-3 text-white">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
@@ -117,29 +120,46 @@
         </div>
 
         <!-- Summary -->
-        <div class="mt-12 bg-gray-50 rounded-3xl p-6 border border-gray-100 mb-12">
-           <div class="flex justify-between items-center mb-6">
-              <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest">Rincian Order</h3>
-              <span class="bg-gray-200 text-gray-600 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg">{{ order.orderType }}</span>
+        <div class="mt-12 bg-gray-50/50 rounded-[32px] p-8 border border-gray-100 mb-12 relative overflow-hidden">
+           <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none"></div>
+           
+           <div class="flex justify-between items-center mb-8 relative z-10">
+              <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-primary">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                 </svg>
+                 Rincian Order
+              </h3>
+              <span class="bg-primary/10 text-primary text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border border-primary/10">{{ order.orderType }}</span>
            </div>
            
-           <div class="space-y-4">
-              <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center">
-                 <div class="flex gap-3 items-center">
-                    <img :src="item.menu?.image" class="w-10 h-10 object-cover rounded-xl" />
+           <div class="space-y-6 relative z-10">
+              <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center group">
+                 <div class="flex gap-4 items-center">
+                    <div class="w-12 h-12 rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 group-hover:scale-105 transition-transform duration-300">
+                       <img :src="item.menu?.image" class="w-full h-full object-cover" />
+                    </div>
                     <div>
-                       <p class="font-bold text-gray-900 text-sm leading-none">{{ item.menu?.name }}</p>
-                       <p class="text-[10px] text-gray-400 font-bold mt-1">{{ item.qty }} x Rp {{ formatPrice(item.price) }}</p>
+                       <p class="font-bold text-gray-900 text-sm leading-none mb-1 group-hover:text-primary transition-colors">{{ item.menu?.name }}</p>
+                       <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ item.qty }} x Rp {{ formatPrice(item.price) }}</p>
                     </div>
                  </div>
                  <p class="font-black text-gray-900 text-sm">Rp {{ formatPrice(Number(item.price) * item.qty) }}</p>
               </div>
            </div>
 
-           <div class="mt-6 pt-6 border-t border-gray-200 flex justify-between items-center">
+           <div class="mt-8 pt-6 border-t border-dashed border-gray-200 flex justify-between items-center relative z-10">
               <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Total Harga</span>
-              <span class="text-xl font-black text-primary">Rp {{ formatPrice(order.totalPrice) }}</span>
+              <span class="text-2xl font-black text-primary drop-shadow-sm">Rp {{ formatPrice(order.totalPrice) }}</span>
            </div>
+        </div>
+
+        <!-- Help Button -->
+        <div class="mb-12 text-center">
+           <button class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-gray-100 shadow-sm text-[11px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95 group">
+              <span class="w-2 h-2 rounded-full bg-primary group-hover:animate-ping"></span>
+              Butuh Bantuan Staff?
+           </button>
         </div>
       </div>
       
@@ -182,18 +202,7 @@ const fetchOrder = async () => {
   }
 };
 
-const handleReceived = async () => {
-  isUpdating.value = true;
-  try {
-    await orderStore.confirmReceived(orderId.value);
-    toast.value?.display('Salamaik manikmati dunsanak!');
-    await fetchOrder();
-  } catch (err) {
-    toast.value?.display('Gagal mengonfirmasi pesanan.', 'error');
-  } finally {
-    isUpdating.value = false;
-  }
-};
+
 
 const submitReview = async () => {
   if (!rating.value) return;
@@ -275,10 +284,34 @@ onUnmounted(() => {
 
 <style scoped>
 .animate-down {
-  animation: slideDown 0.4s ease-out;
+  animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-cook {
+  animation: cook 1.5s ease-in-out infinite;
+}
+
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
+  from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1.5); }
+  50% { transform: translate(10px, -10px) scale(1.6); }
+}
+
+@keyframes cook {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-10deg) translateY(-5px); }
+  75% { transform: rotate(10deg) translateY(-2px); }
+}
+
+.timeline-dot-active {
+  box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1), 0 0 20px rgba(227, 30, 36, 0.3);
 }
 </style>
