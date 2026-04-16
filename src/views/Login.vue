@@ -89,10 +89,14 @@ const handleLogin = async () => {
   try {
     const success = await authStore.login(email.value, password.value);
     if (success) {
-      toast.value?.display('Selamat Datang!');
-      const redirectPath = route.query.redirect || '/';
+      toast.value?.display('Berhasil masuk!');
+      
       setTimeout(() => {
-        router.push(redirectPath);
+        if (authStore.isStaff) {
+          router.push(`/staff/${authStore.userRole.toLowerCase()}`);
+        } else {
+          router.push(route.query.redirect || '/menu');
+        }
       }, 1000);
     } else {
       toast.value?.display('Email atau password salah.', 'error');

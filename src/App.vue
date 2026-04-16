@@ -13,7 +13,13 @@ const cartStore = useCartStore()
 const notificationStore = useNotificationStore()
 const route = useRoute()
 
-const hideHeader = computed(() => ['Login', 'Register', 'StaffDashboard'].includes(route.name))
+// Staff routes are anything starting with /staff
+const isStaffRoute = computed(() => route.path.startsWith('/staff'))
+
+const hideCustomerUI = computed(() => {
+  // Hide customer-specific UI (TopBar, BottomNav, etc) on staff routes or specific pages
+  return isStaffRoute.value || ['Login', 'Register'].includes(route.name)
+})
 
 onMounted(() => {
   cartStore.fetchCart()
@@ -27,10 +33,14 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- Main layout container: Centered mobile-first for customers, Full-width for staff -->
   <div class="min-h-screen bg-gray-100 flex flex-col items-center overflow-x-hidden">
-    <!-- Main constraint container for mobile-first feel -->
-    <div class="w-full max-w-md bg-white min-h-screen shadow-premium relative flex flex-col">
-      <TopBar v-if="!hideHeader" />
+    
+    <div 
+      :class="isStaffRoute ? 'w-full' : 'w-full max-w-md bg-white shadow-premium min-h-screen'"
+      class="relative flex flex-col transition-all duration-500"
+    >
+      <TopBar v-if="!hideCustomerUI" />
       
       <div class="flex-1 relative scrollbar-hide">
         <router-view v-slot="{ Component }">
@@ -43,10 +53,12 @@ onMounted(() => {
         </router-view>
       </div>
       
-      <BottomNav />
-      <CartDrawer />
-      <NotificationDrawer />
-      <ChatbotWidget />
+      <template v-if="!isStaffRoute">
+        <BottomNav v-if="!hideCustomerUI" />
+        <CartDrawer />
+        <NotificationDrawer />
+        <ChatbotWidget />
+      </template>
     </div>
   </div>
 </template>

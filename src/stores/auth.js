@@ -11,6 +11,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value);
   const isGuest = computed(() => !!guestToken.value);
+  const isStaff = computed(() => {
+    return user.value && ['ADMIN', 'KASIR', 'KITCHEN'].includes(user.value.role);
+  });
+  const isCustomer = computed(() => {
+    return user.value && user.value.role === 'CUSTOMER';
+  });
+  const userRole = computed(() => user.value?.role || (isGuest.value ? 'GUEST' : null));
 
   const login = async (email, password) => {
     try {
@@ -58,6 +65,9 @@ export const useAuthStore = defineStore('auth', () => {
     guestToken,
     isAuthenticated,
     isGuest,
+    isStaff,
+    isCustomer,
+    userRole,
     login,
     logout,
     setGuestSession,
