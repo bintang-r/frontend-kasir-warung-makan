@@ -105,12 +105,17 @@ const handleLogin = async () => {
     if (success) {
       toast.value?.display('Otentikasi berhasil!');
       
+      const rolePathMap = {
+        ADMIN: '/staff/admin',
+        KASIR: '/staff/cashier',
+        KITCHEN: '/staff/kitchen',
+        DRIVER: '/staff/admin',
+      };
+
       setTimeout(() => {
         if (authStore.isStaff) {
-          // Automatic staff portal redirection
-          router.push(`/staff/${authStore.userRole.toLowerCase()}`);
+          router.push(rolePathMap[authStore.userRole] || '/staff/admin');
         } else {
-          // Regular customer redirection
           router.push(route.query.redirect || '/menu');
         }
       }, 800);

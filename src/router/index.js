@@ -194,7 +194,15 @@ router.beforeEach((to, from, next) => {
   const customerRoutes = ['Cart', 'Checkout', 'OrderHistory', 'Profile', 'OrderPayment'];
   if (customerRoutes.includes(to.name)) {
     if (!isAuthenticated && !authStore.isGuest) return next({ name: 'Login' });
-    if (isStaff) return next({ path: `/staff/${userRole.toLowerCase()}` });
+    if (isStaff) {
+      const rolePathMap = {
+        ADMIN: '/staff/admin',
+        KASIR: '/staff/cashier',
+        KITCHEN: '/staff/kitchen',
+        DRIVER: '/staff/admin',
+      };
+      return next({ path: rolePathMap[userRole] || '/staff/admin' });
+    }
   }
 
   next();

@@ -24,6 +24,10 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.post('/auth/login', { email, password });
       const data = response.data;
       
+      if (!data.access_token) {
+        throw new Error('No access token received');
+      }
+
       token.value = data.access_token;
       user.value = data.user;
       
