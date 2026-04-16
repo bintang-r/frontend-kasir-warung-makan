@@ -71,12 +71,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const reviews = ref([]);
-const toast = ref(null);
+const staffToast = inject('staffToast');
 
 const averageRating = computed(() => {
   if (reviews.value.length === 0) return 0;
@@ -97,10 +96,10 @@ const handleDelete = async (id) => {
   if (!confirm('Hapus ulasan ini? Tindakan ini tidak dapat dibatalkan.')) return;
   try {
     await api.delete(`/reviews/${id}`);
-    toast.value?.display('Ulasan berhasil dihapus');
+    staffToast.value?.display('Ulasan telah dihapus dari basis data.', 'info', 'Moderasi Konten');
     fetchData();
   } catch (err) {
-    toast.value?.display('Gagal menghapus ulasan', 'error');
+    staffToast.value?.display('Gagal menghapus ulasan ini.', 'error');
   }
 };
 

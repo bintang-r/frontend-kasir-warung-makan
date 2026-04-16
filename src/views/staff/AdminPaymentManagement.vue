@@ -86,12 +86,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const payments = ref([]);
-const toast = ref(null);
+const staffToast = inject('staffToast');
 
 const stats = computed(() => {
   const total = payments.value.reduce((acc, p) => p.status === 'PAID' ? acc + Number(p.amount) : acc, 0);
@@ -135,10 +134,9 @@ const formatDate = (d) => new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium'
 const formatTime = (d) => new Intl.DateTimeFormat('id-ID', { timeStyle: 'short' }).format(new Date(d));
 
 const exportCSV = () => {
-  toast.value?.display('Mempersiapkan data laporan keuangan...');
-  // Logic to generate and download CSV
+  staffToast.value?.display('Mempersiapkan data laporan keuangan...', 'info', 'Ekspor Data');
   setTimeout(() => {
-     toast.value?.display('Laporan berhasil diunduh! 📁');
+     staffToast.value?.display('Laporan berhasil diunduh! 📁', 'success', 'Download Selesai');
   }, 1000);
 };
 

@@ -102,20 +102,18 @@
        </div>
     </div>
 
-    <NotificationToast ref="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, inject } from 'vue';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const currentTab = ref('chatbot');
 const chatbotLogs = ref([]);
 const guestSessions = ref([]);
 const notificationLogs = ref([]);
-const toast = ref(null);
+const staffToast = inject('staffToast'); // Available for future use
 
 const tabs = [
   { label: 'Chatbot Logs', value: 'chatbot' },
