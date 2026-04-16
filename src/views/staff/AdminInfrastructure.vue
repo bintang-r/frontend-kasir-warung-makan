@@ -151,6 +151,21 @@ const submitCategory = async () => {
    } catch (err) { staffToast.value?.display('Gagal memperbarui kategori.', 'error'); }
 };
 
+const openTableModal = (table = null) => {
+   tableForm.value = table ? { ...table } : { id: null, name: '', status: 'AKTIF' };
+   tableModalOpen.value = true;
+};
+
+const submitTable = async () => {
+   try {
+      if (tableForm.value.id) await api.put(`/tables/${tableForm.value.id}`, tableForm.value);
+      else await api.post('/tables', tableForm.value);
+      staffToast.value?.display('Data meja pelanggan berhasil diperbarui', 'success', 'Update Infrastruktur');
+      tableModalOpen.value = false;
+      fetchData();
+   } catch (err) { staffToast.value?.display('Gagal memperbarui data meja.', 'error'); }
+};
+
 const confirmDelete = (type, item) => {
    deleteType.value = type;
    itemToDelete.value = item;

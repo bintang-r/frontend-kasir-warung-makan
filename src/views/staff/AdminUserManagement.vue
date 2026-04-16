@@ -10,6 +10,29 @@
              <i class="fa-solid fa-users text-primary"></i>
              <span class="text-sm font-black text-gray-900">{{ users.length }} <span class="text-[10px] text-gray-400 uppercase ml-1">Total Entitas</span></span>
           </div>
+
+          <!-- Add Staff Dropdown -->
+          <div class="relative" ref="roleDropdownRef">
+             <button 
+               @click="isRoleDropdownOpen = !isRoleDropdownOpen"
+               class="bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-2"
+             >
+                <i class="fa-solid fa-user-plus"></i> Tambah Staff <i class="fa-solid fa-chevron-down text-[8px]"></i>
+             </button>
+             
+             <transition name="dropdown">
+                <div v-if="isRoleDropdownOpen" class="absolute top-full right-0 mt-3 w-48 bg-white rounded-3xl shadow-2xl border border-gray-100 py-3 z-[110] overflow-hidden">
+                   <button 
+                      v-for="role in ['ADMIN', 'KASIR', 'KITCHEN', 'DRIVER']" :key="role"
+                      @click="openCreateModal(role)"
+                      class="w-full text-left px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary hover:bg-gray-50 transition-all flex items-center justify-between"
+                   >
+                      {{ role }}
+                      <i class="fa-solid fa-plus opacity-50"></i>
+                   </button>
+                </div>
+             </transition>
+          </div>
        </div>
     </div>
 
@@ -55,6 +78,48 @@
                 </tr>
              </tbody>
           </table>
+       </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div v-if="isCreateModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-6">
+       <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="isCreateModalOpen = false"></div>
+       <div class="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-scale-in">
+          <div class="p-10">
+             <div class="flex justify-between items-start mb-8">
+                <div>
+                   <h3 class="text-2xl font-black text-gray-900 tracking-tight">Tambah Staff Baru</h3>
+                   <p class="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Role: {{ createForm.role }}</p>
+                </div>
+                <button @click="isCreateModalOpen = false" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+             </div>
+
+             <form @submit.prevent="handleCreateSubmit" class="space-y-4">
+                <div class="space-y-1.5">
+                   <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                   <input v-model="createForm.name" required class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-3.5 px-6 text-sm font-bold focus:bg-white focus:border-primary outline-none transition-all" />
+                </div>
+                <div class="space-y-1.5">
+                   <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                   <input v-model="createForm.email" type="email" required class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-3.5 px-6 text-sm font-bold focus:bg-white focus:border-primary outline-none transition-all" />
+                </div>
+                <div class="space-y-1.5">
+                   <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Set Password</label>
+                   <input v-model="createForm.password" type="password" required class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-3.5 px-6 text-sm font-bold focus:bg-white focus:border-primary outline-none transition-all" />
+                </div>
+
+                <div class="pt-6">
+                   <button 
+                      type="submit" 
+                      :disabled="isSubmitting"
+                      class="w-full bg-gray-900 text-white py-4.5 rounded-2xl font-black shadow-xl hover:bg-primary transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 uppercase tracking-widest text-xs"
+                   >
+                      <div v-if="isSubmitting" class="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>{{ isSubmitting ? 'Mendaftarkan...' : 'Daftarkan Account Staff' }}</span>
+                   </button>
+                </div>
+             </form>
+          </div>
        </div>
     </div>
 
@@ -127,11 +192,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject, onUnmounted } from 'vue';
 import api from '../../services/api';
 
 const users = ref([]);
 const isModalOpen = ref(false);
+const isCreateModalOpen = ref(false);
+const isRoleDropdownOpen = ref(false);
+const roleDropdownRef = ref(null);
 const isSubmitting = ref(false);
 const isDeleteModalOpen = ref(false);
 const userToDelete = ref(null);
@@ -141,6 +209,13 @@ const staffToast = inject('staffToast');
 
 const form = ref({
    id: null,
+   role: ''
+});
+
+const createForm = ref({
+   name: '',
+   email: '',
+   password: '',
    role: ''
 });
 
@@ -156,6 +231,27 @@ const fetchUsers = async () => {
 const openModal = (user) => {
    form.value = { id: user.id.toString(), role: user.role };
    isModalOpen.value = true;
+};
+
+const openCreateModal = (role) => {
+   createForm.value = { name: '', email: '', password: '', role };
+   isCreateModalOpen.value = true;
+   isRoleDropdownOpen.value = false;
+};
+
+const handleCreateSubmit = async () => {
+   isSubmitting.value = true;
+   try {
+      await api.post('/users', createForm.value);
+      staffToast.value?.display('Account staff baru berhasil didaftarkan', 'success', 'User Created');
+      isCreateModalOpen.value = false;
+      fetchUsers();
+   } catch (err) {
+      console.error('Creation failed', err);
+      staffToast.value?.display('Gagal mendaftarkan account baru.', 'error');
+   } finally {
+      isSubmitting.value = false;
+   }
 };
 
 const handleSubmit = async () => {
@@ -210,7 +306,21 @@ const getRoleClass = (role) => {
 
 const formatDate = (date) => new Intl.DateTimeFormat('id-ID').format(new Date(date));
 
-onMounted(fetchUsers);
+// Click outside dropdown
+const handleClickOutside = (event) => {
+   if (roleDropdownRef.value && !roleDropdownRef.value.contains(event.target)) {
+      isRoleDropdownOpen.value = false;
+   }
+};
+
+onMounted(() => {
+   fetchUsers();
+   document.addEventListener('mousedown', handleClickOutside);
+});
+
+onUnmounted(() => {
+   document.removeEventListener('mousedown', handleClickOutside);
+});
 </script>
 
 <style scoped>
@@ -220,5 +330,21 @@ onMounted(fetchUsers);
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Dropdown Animation */
+.dropdown-enter-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-leave-active {
+  transition: all 0.2s cubic-bezier(0.7, 0, 0.84, 0);
+}
+.dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+}
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(5px) scale(0.98);
 }
 </style>

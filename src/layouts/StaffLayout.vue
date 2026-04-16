@@ -31,30 +31,7 @@
         </router-link>
       </nav>
 
-      <!-- Account / Logout -->
-        <div class="p-6 border-t border-white/5 bg-black/20 space-y-4">
-          <div class="overflow-hidden mb-4">
-            <p class="font-black text-white text-sm truncate uppercase tracking-tighter">{{ user?.name }}</p>
-            <p class="text-[10px] font-black text-primary/80 uppercase tracking-widest">{{ user?.role }}</p>
-          </div>
-          
-          <router-link 
-            to="/staff/profile"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs border border-white/5 hover:bg-white/5"
-            :class="route.path === '/staff/profile' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-400 hover:text-white'"
-          >
-            <i class="fa-solid fa-id-card-clip"></i>
-            Manajemen Profil
-          </router-link>
-
-          <button 
-            @click="handleLogout"
-            class="w-full bg-white/5 hover:bg-red-500/10 hover:text-red-500 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 flex items-center justify-center gap-3 border border-white/5"
-          >
-            <i class="fa-solid fa-right-from-bracket"></i>
-            Keluar Sesi
-          </button>
-        </div>
+      <!-- Navigation and Brand handled above -->
     </aside>
 
     <!-- Main Content -->
@@ -68,10 +45,56 @@
              <p class="text-xs font-bold text-gray-600">Pelayanan Aktif</p>
           </div>
           <div class="w-px h-8 bg-gray-100"></div>
-          <button class="relative text-gray-400 hover:text-primary transition-colors">
-            <i class="fa-solid fa-bell text-xl"></i>
-            <span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
-          </button>
+          
+          <!-- Profile Dropdown -->
+          <div class="relative" ref="dropdownRef">
+             <button 
+               @click="toggleProfileDropdown"
+               class="flex items-center gap-3 pl-4 pr-1.5 py-1.5 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-white hover:border-primary transition-all group"
+               :class="{ 'border-primary ring-4 ring-primary/10': profileDropdownOpen }"
+             >
+                <div class="text-right hidden sm:block">
+                   <p class="text-[10px] font-black text-gray-900 uppercase tracking-tighter leading-none">{{ user?.name }}</p>
+                   <p class="text-[8px] font-bold text-primary uppercase tracking-widest mt-1">{{ user?.role }}</p>
+                </div>
+                <div class="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:bg-primary transition-colors">
+                   <i class="fa-solid fa-user-tie text-sm"></i>
+                </div>
+             </button>
+
+             <!-- Dropdown Menu -->
+             <transition name="dropdown">
+                <div v-if="profileDropdownOpen" class="absolute top-full right-0 mt-4 w-64 bg-white rounded-[32px] border border-gray-100 shadow-2xl overflow-hidden z-50 py-3">
+                   <div class="px-6 py-4 border-b border-gray-50 mb-3 sm:hidden">
+                      <p class="text-xs font-black text-gray-900">{{ user?.name }}</p>
+                      <p class="text-[9px] font-bold text-primary tracking-widest uppercase">{{ user?.role }}</p>
+                   </div>
+                   
+                   <div class="px-3 space-y-1">
+                      <router-link 
+                        @click="closeProfileDropdown"
+                        to="/staff/profile" 
+                        class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all"
+                      >
+                         <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                            <i class="fa-solid fa-id-card"></i>
+                         </div>
+                         Profil Saya
+                      </router-link>
+                      
+                      <button 
+                        @click="handleLogout"
+                        class="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-xs font-bold text-red-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                      >
+                         <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                         </div>
+                         Keluar Sesi
+                      </button>
+                   </div>
+                </div>
+             </transition>
+          </div>
         </div>
       </header>
 
@@ -97,7 +120,7 @@
 </template>
 
 <script setup>
-import { computed, ref, provide } from 'vue';
+import { computed, ref, provide, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import NotificationToast from '../components/NotificationToast.vue';
@@ -109,6 +132,32 @@ const user = authStore.user;
 
 const staffToast = ref(null);
 provide('staffToast', staffToast);
+
+// Dropdown Logic
+const profileDropdownOpen = ref(false);
+const dropdownRef = ref(null);
+
+const toggleProfileDropdown = () => {
+  profileDropdownOpen.value = !profileDropdownOpen.value;
+};
+
+const closeProfileDropdown = () => {
+  profileDropdownOpen.value = false;
+};
+
+const handleClickOutside = (event) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    closeProfileDropdown();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 
 const currentRouteName = computed(() => {
   return route.meta.title || 'Dashboard';
@@ -161,5 +210,21 @@ const handleLogout = () => {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Dropdown Animation */
+.dropdown-enter-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-leave-active {
+  transition: all 0.2s cubic-bezier(0.7, 0, 0.84, 0);
+}
+.dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+}
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(5px) scale(0.98);
 }
 </style>
