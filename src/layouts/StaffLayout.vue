@@ -33,15 +33,21 @@
 
       <!-- Account / Logout -->
       <div class="p-6 border-t border-white/5 bg-black/20">
-        <div class="flex items-center gap-4 mb-6 px-2">
-          <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-black uppercase shadow-inner">
-            {{ user?.name?.charAt(0) }}
-          </div>
           <div class="overflow-hidden">
             <p class="font-black text-white text-sm truncate uppercase tracking-tighter">{{ user?.name }}</p>
             <p class="text-[10px] font-black text-primary/80 uppercase tracking-widest">{{ user?.role }}</p>
           </div>
         </div>
+        
+        <router-link 
+          to="/staff/profile"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs mb-4 border border-white/5 hover:bg-white/5"
+          :class="route.path === '/staff/profile' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-400 hover:text-white'"
+        >
+          <i class="fa-solid fa-id-card-clip"></i>
+          Manajemen Profil
+        </router-link>
+
         <button 
           @click="handleLogout"
           class="w-full bg-white/5 hover:bg-red-500/10 hover:text-red-500 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 flex items-center justify-center gap-3 border border-white/5"
@@ -114,15 +120,18 @@ const navItems = computed(() => {
   if (user?.role === 'ADMIN') {
     items.push(
       { name: 'Dashboard Admin', path: '/staff/admin', icon: 'fa-solid fa-chart-pie' },
+      { name: 'Pantau Pesanan', path: '/staff/admin/orders', icon: 'fa-solid fa-receipt' },
+      { name: 'Riwayat Transaksi', path: '/staff/admin/payments', icon: 'fa-solid fa-file-invoice-dollar' },
       { name: 'Kelola Menu', path: '/staff/admin/menus', icon: 'fa-solid fa-utensils' },
       { name: 'Kategori & Meja', path: '/staff/admin/infrastructure', icon: 'fa-solid fa-layer-group' },
       { name: 'Manajemen User', path: '/staff/admin/users', icon: 'fa-solid fa-users-gear' },
-      { name: 'Promo & Voucher', path: '/staff/admin/promos', icon: 'fa-solid fa-ticket' }
+      { name: 'Ulasan Pelanggan', path: '/staff/admin/reviews', icon: 'fa-solid fa-star-half-stroke' },
+      { name: 'Promo & Voucher', path: '/staff/admin/promos', icon: 'fa-solid fa-ticket' },
+      { name: 'Audit & System', path: '/staff/admin/system', icon: 'fa-solid fa-shield-halved' }
     );
   } else if (user?.role === 'KASIR') {
     items.push(
-      { name: 'Kasir Panel', path: '/staff/cashier', icon: 'fa-solid fa-cash-register' },
-      { name: 'Riwayat Transaksi', path: '/staff/cashier/history', icon: 'fa-solid fa-receipt' }
+      { name: 'Kasir Panel', path: '/staff/cashier', icon: 'fa-solid fa-cash-register' }
     );
   } else if (user?.role === 'KITCHEN') {
     items.push(
@@ -135,7 +144,7 @@ const navItems = computed(() => {
 
 const handleLogout = () => {
   authStore.logout();
-  router.push('/staff/login');
+  router.push('/login');
 };
 </script>
 

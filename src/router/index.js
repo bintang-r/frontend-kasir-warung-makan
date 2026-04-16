@@ -16,12 +16,17 @@ const QRSession = () => import('../views/QRSession.vue');
 
 // Staff Views
 const StaffLayout = () => import('../layouts/StaffLayout.vue');
-const StaffLogin = () => import('../views/staff/StaffLogin.vue');
+const StaffProfile = () => import('../views/staff/StaffProfile.vue');
 const AdminDashboard = () => import('../views/staff/AdminDashboard.vue');
 const AdminMenuManagement = () => import('../views/staff/AdminMenuManagement.vue');
 const AdminUserManagement = () => import('../views/staff/AdminUserManagement.vue');
 const AdminInfrastructure = () => import('../views/staff/AdminInfrastructure.vue');
 const AdminPromoManagement = () => import('../views/staff/AdminPromoManagement.vue');
+const AdminOrderManagement = () => import('../views/staff/AdminOrderManagement.vue');
+const AdminPaymentManagement = () => import('../views/staff/AdminPaymentManagement.vue');
+const AdminReviewManagement = () => import('../views/staff/AdminReviewManagement.vue');
+const AdminSystemLogs = () => import('../views/staff/AdminSystemLogs.vue');
+
 const CashierDashboard = () => import('../views/staff/CashierDashboard.vue');
 const KitchenDashboard = () => import('../views/staff/KitchenDashboard.vue');
 
@@ -46,10 +51,34 @@ const routes = [
     meta: { requiresAuth: true, isStaffOnly: true },
     children: [
       { 
+        path: 'profile', 
+        component: StaffProfile, 
+        name: 'StaffProfile', 
+        meta: { title: 'Profil Saya' } 
+      },
+      { 
         path: 'admin', 
         component: AdminDashboard, 
         name: 'AdminDashboard', 
         meta: { role: 'ADMIN', title: 'Admin Overview' } 
+      },
+      { 
+        path: 'admin/orders', 
+        component: AdminOrderManagement, 
+        name: 'AdminOrderManagement', 
+        meta: { role: 'ADMIN', title: 'Manajemen Pesanan' } 
+      },
+      { 
+        path: 'admin/payments', 
+        component: AdminPaymentManagement, 
+        name: 'AdminPaymentManagement', 
+        meta: { role: 'ADMIN', title: 'Riwayat Transaksi' } 
+      },
+      { 
+        path: 'admin/reviews', 
+        component: AdminReviewManagement, 
+        name: 'AdminReviewManagement', 
+        meta: { role: 'ADMIN', title: 'Moderasi Ulasan' } 
       },
       { 
         path: 'admin/menus', 
@@ -74,6 +103,12 @@ const routes = [
         component: AdminPromoManagement, 
         name: 'AdminPromoManagement', 
         meta: { role: 'ADMIN', title: 'Pusat Manajemen Pemasaran' } 
+      },
+      { 
+        path: 'admin/system', 
+        component: AdminSystemLogs, 
+        name: 'AdminSystemLogs', 
+        meta: { role: 'ADMIN', title: 'System Logs & Audit' } 
       },
       { 
         path: 'cashier', 
@@ -118,17 +153,16 @@ router.beforeEach((to, from, next) => {
 
     // Strict sub-role checking
     if (to.meta.role && userRole !== to.meta.role) {
-       // Optional: Cross-redirect if admin or just push to their own base path
+       // Automatic redirect back to own base if trying to cross roles
        return next({ path: `/staff/${userRole.toLowerCase()}` });
     }
     return next();
   }
 
-  // 4. Handling Protected Customer routes
+  // 3. Handling Protected Customer routes
   const customerRoutes = ['Cart', 'Checkout', 'OrderHistory', 'Profile', 'OrderPayment'];
   if (customerRoutes.includes(to.name)) {
     if (!isAuthenticated && !authStore.isGuest) return next({ name: 'Login' });
-    // Staff members shouldn't really be doing customer checkout while in staff sessions
     if (isStaff) return next({ path: `/staff/${userRole.toLowerCase()}` });
   }
 
