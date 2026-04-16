@@ -8,44 +8,51 @@
        <p class="text-2xl font-black text-gray-900 leading-tight mt-1">Nio makan apo dunsanak hari ko?</p>
     </div>
 
-    <!-- Promo Banner Slider (Mock) -->
+    <!-- Promo Banner Carousel -->
     <div class="px-6 py-4">
-      <div class="relative h-44 w-full bg-gradient-to-br from-primary to-primary-dark rounded-3xl shadow-premium overflow-hidden group">
-        <div class="absolute inset-0 opacity-10 flex flex-wrap gap-4 p-4 grayscale pointer-events-none">
-           <div v-for="n in 20" :key="n" class="w-12 h-12 border-2 border-white rounded-lg rotate-45"></div>
+      <div v-if="isLoading" class="w-full aspect-[2/1] bg-gray-200 rounded-3xl animate-pulse"></div>
+      <div v-else-if="promos.length === 0" class="w-full aspect-[2/1] bg-gray-200 rounded-3xl flex items-center justify-center text-gray-400 font-medium">
+        Tidak ada promo saat ini
+      </div>
+      <div v-else class="relative w-full aspect-[2/1] rounded-3xl shadow-premium overflow-hidden group">
+        <!-- Slides container -->
+        <div 
+          class="flex w-full h-full transition-transform duration-500 ease-out"
+          :style="{ transform: `translateX(-${currentPromoIndex * 100}%)` }"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
+        >
+          <div 
+            v-for="(promo, index) in promos" 
+            :key="promo.id"
+            class="w-full h-full flex-shrink-0 relative"
+          >
+            <img v-if="promo.image" :src="promo.image" alt="Promo" class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-gray-300"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+            </div>
+            <!-- Overlay Content (optional if Title exists) -->
+            <div v-if="promo.title" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
+              <h3 class="font-bold text-lg leading-tight">{{ promo.title }}</h3>
+              <p v-if="promo.description" class="text-xs text-white/80 line-clamp-1">{{ promo.description }}</p>
+            </div>
+          </div>
         </div>
-        <div class="relative h-full flex flex-col justify-center p-8 text-white">
-          <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit">Promo Hari Ini</span>
-          <h2 class="text-2xl font-extrabold mt-2 leading-tight">Diskon 30%<br/>Paket Rendang</h2>
-          <p class="text-white/70 text-xs mt-2 font-medium">Khusus pemesanan melalui App & QR</p>
-        </div>
-        <div class="absolute -right-10 bottom-0 opacity-20 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-64 h-64">
-             <path fill-rule="evenodd" d="M12.964 2.815a.75.75 0 00-1.928 0l-2.43 6.925H3.25a.75.75 0 00-.51 1.348l5.302 4.458-2.02 6.54a.75.75 0 001.157.841L12 19.012l4.82 3.911a.75.75 0 001.159-.84l-2.022-6.54 5.303-4.459a.75.75 0 00-.51-1.347h-5.356l-2.43-6.926z" clip-rule="evenodd" />
-           </svg>
+        <!-- Indicators -->
+        <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+          <button 
+            v-for="(_, index) in promos" 
+            :key="index"
+            @click="currentPromoIndex = index"
+            class="h-1.5 rounded-full transition-all duration-300"
+            :class="index === currentPromoIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'"
+          ></button>
         </div>
       </div>
     </div>
 
-    <!-- Quick Actions (Tab Style) -->
-    <div class="grid grid-cols-2 gap-4 px-6 mt-4">
-      <router-link to="/menu" class="bg-white p-4 rounded-3xl shadow-card border border-gray-100 flex flex-col items-center justify-center gap-3 active:scale-95 transition-all">
-        <div class="bg-primary-surface p-4 rounded-2xl text-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-          </svg>
-        </div>
-        <span class="font-bold text-gray-800 text-sm">Pesan Dine-In</span>
-      </router-link>
-      <router-link to="/menu?orderType=DELIVERY" class="bg-white p-4 rounded-3xl shadow-card border border-gray-100 flex flex-col items-center justify-center gap-3 active:scale-95 transition-all">
-        <div class="bg-secondary-surface p-4 rounded-2xl text-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-          </svg>
-        </div>
-        <span class="font-bold text-gray-800 text-sm">Antar (Delivery)</span>
-      </router-link>
-    </div>
+
 
     <!-- Category Section -->
     <div class="mt-10">
@@ -87,6 +94,7 @@
            v-for="menu in popularMenus" 
            :key="menu.id" 
            :menu="menu" 
+           @add-to-cart="handleAddToCart"
          />
       </div>
     </div>
@@ -112,34 +120,87 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import api from '../services/api';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useCartStore } from '../stores/cart';
 import MenuCard from '../components/MenuCard.vue';
 
 const categories = ref([]);
 const popularMenus = ref([]);
+const promos = ref([]);
 const isLoading = ref(true);
 const router = useRouter();
 const authStore = useAuthStore();
+const cartStore = useCartStore();
+
+// Carousel Logic
+const currentPromoIndex = ref(0);
+let autoSlideInterval = null;
+let touchStartX = 0;
+let touchEndX = 0;
+
+const startAutoSlide = () => {
+  stopAutoSlide();
+  if (promos.value.length > 1) {
+    autoSlideInterval = setInterval(() => {
+      currentPromoIndex.value = (currentPromoIndex.value + 1) % promos.value.length;
+    }, 4000);
+  }
+};
+
+const stopAutoSlide = () => {
+  if (autoSlideInterval) clearInterval(autoSlideInterval);
+};
+
+const handleTouchStart = (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+  stopAutoSlide();
+};
+
+const handleTouchMove = (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+};
+
+const handleTouchEnd = () => {
+  if (touchStartX - touchEndX > 50) {
+    // Swipe left
+    currentPromoIndex.value = (currentPromoIndex.value + 1) % promos.value.length;
+  } else if (touchEndX - touchStartX > 50) {
+    // Swipe right
+    currentPromoIndex.value = (currentPromoIndex.value - 1 + promos.value.length) % promos.value.length;
+  }
+  startAutoSlide();
+};
+
+const handleAddToCart = (item) => {
+  cartStore.addItem(item);
+};
 
 onMounted(async () => {
   try {
-    const [catRes, menuRes] = await Promise.all([
+    const [catRes, menuRes, promoRes] = await Promise.all([
       api.get('/categories'),
-      api.get('/menus') // We'll filter this since there's no specific popular endpoint yet
+      api.get('/menus'),
+      api.get('/promos').catch(() => ({ data: [] }))
     ]);
     categories.value = catRes.data;
-    // Filter menus that have isPopular: true
     popularMenus.value = menuRes.data
       .filter(m => m.isPopular === true || m.isPopular === 'true')
       .slice(0, 4);
+      
+    promos.value = promoRes.data || [];
+    if (promos.value.length > 0) startAutoSlide();
   } catch (err) {
     console.error('Failed to load home data', err);
   } finally {
     isLoading.value = false;
   }
+});
+
+onUnmounted(() => {
+  stopAutoSlide();
 });
 </script>
 
