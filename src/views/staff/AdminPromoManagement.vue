@@ -42,7 +42,7 @@
              <p class="text-xs font-medium text-gray-400 line-clamp-2 mb-6">{{ promo.description }}</p>
              <div class="mt-auto flex gap-3">
                 <button @click="openModal(promo)" class="flex-1 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 py-3 rounded-xl transition-all"><i class="fa-solid fa-edit"></i></button>
-                <button @click="handleDelete(promo.id)" class="flex-1 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 py-3 rounded-xl transition-all"><i class="fa-solid fa-trash"></i></button>
+                <button @click="confirmDelete('promo', promo)" class="flex-1 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 py-3 rounded-xl transition-all"><i class="fa-solid fa-trash"></i></button>
              </div>
           </div>
        </div>
@@ -76,7 +76,7 @@
                       <button @click="openModal(v)" class="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                          <i class="fa-solid fa-pen-to-square"></i>
                       </button>
-                      <button @click="handleDelete(v.id)" class="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                      <button @click="confirmDelete('voucher', v)" class="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
                          <i class="fa-solid fa-trash-can"></i>
                       </button>
                    </td>
@@ -143,6 +143,26 @@
        </div>
     </div>
 
+     <!-- Delete Confirmation Modal -->
+     <div v-if="deleteModalOpen" class="fixed inset-0 z-[140] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="deleteModalOpen = false"></div>
+        <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-scale-in p-8 text-center">
+           <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i class="fa-solid fa-bullhorn text-2xl" v-if="deleteType === 'promo'"></i>
+              <i class="fa-solid fa-ticket text-2xl" v-else></i>
+           </div>
+           <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus {{ deleteType === 'promo' ? 'Banner Promo' : 'Voucher' }}?</h3>
+           <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
+              Apakah Anda yakin ingin menghapus <strong>{{ itemToDelete?.title || itemToDelete?.code }}</strong>? 
+              <span class="block mt-2 font-black uppercase text-[10px] text-red-400">Tindakan ini permanen dan tidak dapat dibatalkan.</span>
+           </p>
+           <div class="flex gap-4">
+              <button @click="deleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
+              <button @click="executeDelete" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-red-500/30">Ya, Hapus</button>
+           </div>
+        </div>
+     </div>
+
   </div>
 </template>
 
@@ -155,6 +175,9 @@ const promos = ref([]);
 const vouchers = ref([]);
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
+const deleteModalOpen = ref(false);
+const deleteType = ref(''); // 'promo' or 'voucher'
+const itemToDelete = ref(null);
 
 const staffToast = inject('staffToast');
 
@@ -206,14 +229,30 @@ const handleSubmit = async () => {
    }
 };
 
-const handleDelete = async (id) => {
-   if (!confirm('Hapus data marketing ini secara permanen?')) return;
+const confirmDelete = (type, item) => {
+   deleteType.value = type;
+   itemToDelete.value = item;
+   deleteModalOpen.value = true;
+};
+
+const executeDelete = async () => {
+   if (!itemToDelete.value) return;
+   
+   const id = itemToDelete.value.id;
+   const type = deleteType.value;
+   deleteModalOpen.value = false;
+
    try {
-      const endpoint = activeTab.value === 'promos' ? '/promos/admin' : '/promos/vouchers/admin';
+      const endpoint = type === 'promo' ? '/promos/admin' : '/promos/vouchers/admin';
       await api.delete(`${endpoint}/${id}`);
-      staffToast.value?.display('Data marketing telah dihapus.', 'info', 'Operasi Data');
+      staffToast.value?.display(`Data ${type === 'promo' ? 'promo banner' : 'voucher'} telah dihapus.`, 'info', 'Operasi Selesai');
       fetchData();
-   } catch (err) { staffToast.value?.display('Terjadi kesalahan saat penghapusan.', 'error'); }
+   } catch (err) {
+      console.error('Delete failed', err);
+      staffToast.value?.display('Gagal menghapus data pemasaran.', 'error');
+   } finally {
+      itemToDelete.value = null;
+   }
 };
 
 const formatPrice = (price) => new Intl.NumberFormat('id-ID').format(price);

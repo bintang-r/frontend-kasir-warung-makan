@@ -54,12 +54,31 @@
              <router-link :to="{ name: 'AdminOrderManagement', query: { q: review.orderId } }" class="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
                 Lihat Detail Pesanan #{{ review.orderId }}
              </router-link>
-             <button @click="handleDelete(review.id)" class="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-trash-can"></i> Hapus
-             </button>
-          </div>
-       </div>
-    </div>
+              <button @click="confirmDelete(review)" class="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest flex items-center gap-2">
+                 <i class="fa-solid fa-trash-can"></i> Hapus
+              </button>
+           </div>
+        </div>
+     </div>
+
+     <!-- Delete Confirmation Modal -->
+     <div v-if="isDeleteModalOpen" class="fixed inset-0 z-[130] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="isDeleteModalOpen = false"></div>
+        <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-scale-in p-8 text-center">
+           <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i class="fa-solid fa-comment-slash text-2xl"></i>
+           </div>
+           <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus Ulasan?</h3>
+           <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
+              Apakah Anda yakin ingin menghapus ulasan dari <strong>{{ reviewToDelete?.user?.name || 'Guest' }}</strong>? 
+              <span class="block mt-2 text-red-400 font-black uppercase text-[10px]">Tindakan ini permanen dan tidak dapat dibatalkan.</span>
+           </p>
+           <div class="flex gap-4">
+              <button @click="isDeleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
+              <button @click="executeDelete" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-red-500/30">Ya, Hapus</button>
+           </div>
+        </div>
+     </div>
 
     <div v-if="reviews.length === 0" class="bg-white rounded-[40px] border-2 border-dashed border-gray-100 p-20 text-center">
        <i class="fa-solid fa-comments text-6xl text-gray-100 mb-6"></i>
@@ -76,6 +95,8 @@ import api from '../../services/api';
 
 const reviews = ref([]);
 const staffToast = inject('staffToast');
+const isDeleteModalOpen = ref(false);
+const reviewToDelete = ref(null);
 
 const averageRating = computed(() => {
   if (reviews.value.length === 0) return 0;
@@ -92,14 +113,26 @@ const fetchData = async () => {
   }
 };
 
-const handleDelete = async (id) => {
-  if (!confirm('Hapus ulasan ini? Tindakan ini tidak dapat dibatalkan.')) return;
+const confirmDelete = (review) => {
+  reviewToDelete.value = review;
+  isDeleteModalOpen.value = true;
+};
+
+const executeDelete = async () => {
+  if (!reviewToDelete.value) return;
+  
+  const id = reviewToDelete.value.id;
+  isDeleteModalOpen.value = false;
+  
   try {
     await api.delete(`/reviews/${id}`);
-    staffToast.value?.display('Ulasan telah dihapus dari basis data.', 'info', 'Moderasi Konten');
+    staffToast.value?.display('Ulasan pelanggan telah dihapus secara permanen.', 'info', 'Moderasi Selesai');
     fetchData();
   } catch (err) {
+    console.error('Delete review failed', err);
     staffToast.value?.display('Gagal menghapus ulasan ini.', 'error');
+  } finally {
+    reviewToDelete.value = null;
   }
 };
 

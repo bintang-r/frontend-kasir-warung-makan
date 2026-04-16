@@ -21,7 +21,7 @@
               </div>
               <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                  <button @click="openCategoryModal(cat)" class="p-2.5 bg-white shadow-sm text-gray-400 hover:text-blue-600 rounded-xl"><i class="fa-solid fa-pen"></i></button>
-                 <button @click="handleDeleteCategory(cat.id)" class="p-2.5 bg-white shadow-sm text-gray-400 hover:text-red-600 rounded-xl"><i class="fa-solid fa-trash"></i></button>
+                  <button @click="confirmDelete('category', cat)" class="p-2.5 bg-white shadow-sm text-gray-400 hover:text-red-600 rounded-xl"><i class="fa-solid fa-trash"></i></button>
               </div>
            </div>
         </div>
@@ -52,7 +52,7 @@
               </div>
               <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                  <button @click="openTableModal(table)" class="p-2.5 bg-white shadow-sm text-gray-400 hover:text-blue-600 rounded-xl"><i class="fa-solid fa-pen"></i></button>
-                 <button @click="handleDeleteTable(table.id)" class="p-2.5 bg-white shadow-sm text-gray-400 hover:text-red-600 rounded-xl"><i class="fa-solid fa-trash"></i></button>
+                  <button @click="confirmDelete('table', table)" class="p-2.5 bg-white shadow-sm text-gray-400 hover:text-red-600 rounded-xl"><i class="fa-solid fa-trash"></i></button>
               </div>
            </div>
         </div>
@@ -82,8 +82,28 @@
           </div>
           <button @click="submitTable" class="w-full bg-gray-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest">{{ tableForm.id ? 'Perbarui' : 'Tambahkan' }}</button>
        </div>
+       </div>
     </div>
 
+    <!-- Unified Delete Confirmation Modal -->
+    <div v-if="deleteModalOpen" class="fixed inset-0 z-[140] flex items-center justify-center p-6">
+       <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="deleteModalOpen = false"></div>
+       <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-scale-in p-8 text-center">
+          <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+             <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus {{ deleteType === 'category' ? 'Kategori' : 'Meja' }}?</h3>
+          <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
+             Apakah Anda yakin ingin menghapus <strong>{{ itemToDelete?.name }}</strong>? 
+             <span v-if="deleteType === 'category'" class="block mt-2">Menghapus kategori juga akan menghapus seluruh menu yang ada di dalamnya secara permanen.</span>
+             <span v-else class="block mt-2">Data pesanan yang terkait meja ini akan tetap ada namun status mejanya akan dilepas.</span>
+          </p>
+          <div class="flex gap-4">
+             <button @click="deleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
+             <button @click="executeDelete" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-red-500/30">Ya, Hapus</button>
+          </div>
+       </div>
+    </div>
   </div>
 </template>
 
@@ -101,6 +121,10 @@ const categoryForm = ref({ id: null, name: '' });
 
 const tableModalOpen = ref(false);
 const tableForm = ref({ id: null, name: '', status: 'AKTIF' });
+
+const deleteModalOpen = ref(false);
+const deleteType = ref(''); // 'category' or 'table'
+const itemToDelete = ref(null);
 
 const fetchData = async () => {
    try {
@@ -128,37 +152,33 @@ const submitCategory = async () => {
    } catch (err) { staffToast.value?.display('Gagal memperbarui kategori.', 'error'); }
 };
 
-const handleDeleteCategory = async (id) => {
-   if (!confirm('Hapus kategori ini?')) return;
-   try { 
-      await api.delete(`/categories/${id}`); 
-      staffToast.value?.display('Kategori telah dihapus.', 'info', 'Operasi Data');
-      fetchData(); 
-   } catch (e) { staffToast.value?.display('Gagal menghapus kategori.', 'error'); }
+const confirmDelete = (type, item) => {
+   deleteType.value = type;
+   itemToDelete.value = item;
+   deleteModalOpen.value = true;
 };
 
-const openTableModal = (table = null) => {
-   tableForm.value = table ? { ...table } : { id: null, name: '', status: 'AKTIF' };
-   tableModalOpen.value = true;
-};
+const executeDelete = async () => {
+   if (!itemToDelete.value) return;
+   
+   const id = itemToDelete.value.id;
+   const type = deleteType.value;
+   deleteModalOpen.value = false;
 
-const submitTable = async () => {
    try {
-      if (tableForm.value.id) await api.put(`/tables/${tableForm.value.id}`, tableForm.value);
-      else await api.post('/tables', tableForm.value);
-      staffToast.value?.display('Informasi meja berhasil diperbarui', 'success', 'Update Meja');
-      tableModalOpen.value = false;
+      if (type === 'category') {
+         await api.delete(`/categories/${id}`);
+         staffToast.value?.display('Kategori dan seluruh menu terkait telah dihapus.', 'info', 'Operasi Selesai');
+      } else {
+         await api.delete(`/tables/${id}`);
+         staffToast.value?.display('Data meja telah dihapus dari sistem.', 'info', 'Operasi Selesai');
+      }
       fetchData();
-   } catch (err) { staffToast.value?.display('Gagal memperbarui data meja.', 'error'); }
-};
-
-const handleDeleteTable = async (id) => {
-   if (!confirm('Hapus meja ini?')) return;
-   try { 
-      await api.delete(`/tables/${id}`); 
-      staffToast.value?.display('Meja telah dihapus dari sistem.', 'info', 'Operasi Data');
-      fetchData(); 
-   } catch (e) { staffToast.value?.display('Gagal menghapus meja.', 'error'); }
+   } catch (err) {
+      staffToast.value?.display(`Gagal menghapus ${type === 'category' ? 'kategori' : 'meja'}.`, 'error');
+   } finally {
+      itemToDelete.value = null;
+   }
 };
 
 onMounted(fetchData);

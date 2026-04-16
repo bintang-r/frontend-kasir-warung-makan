@@ -45,10 +45,13 @@
                    </td>
                    <td class="py-6 text-center text-[10px] font-bold text-gray-400">{{ formatDate(user.createdAt) }}</td>
                    <td class="py-6 text-right">
-                      <button @click="openModal(user)" class="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                         <i class="fa-solid fa-user-pen"></i>
-                      </button>
-                   </td>
+                       <button @click="openModal(user)" class="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                          <i class="fa-solid fa-user-pen"></i>
+                       </button>
+                       <button @click="confirmDelete(user)" class="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                          <i class="fa-solid fa-trash-can"></i>
+                       </button>
+                    </td>
                 </tr>
              </tbody>
           </table>
@@ -99,6 +102,26 @@
              </form>
           </div>
        </div>
+       </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-[130] flex items-center justify-center p-6">
+       <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="isDeleteModalOpen = false"></div>
+       <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-scale-in p-8 text-center">
+          <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+             <i class="fa-solid fa-user-xmark text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus Akun User?</h3>
+          <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
+             Apakah Anda yakin ingin menghapus akun <strong>{{ userToDelete?.name }}</strong>? 
+             <span class="block mt-2">Data pribadi user akan hilang, namun riwayat transaksi/pesanan akan tetap tersimpan sebagai anonim untuk pelaporan keuangan.</span>
+          </p>
+          <div class="flex gap-4">
+             <button @click="isDeleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
+             <button @click="executeDelete" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-red-500/30">Ya, Hapus</button>
+          </div>
+       </div>
     </div>
     
   </div>
@@ -111,6 +134,8 @@ import api from '../../services/api';
 const users = ref([]);
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
+const isDeleteModalOpen = ref(false);
+const userToDelete = ref(null);
 const availableRoles = ['CUSTOMER', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER'];
 
 const staffToast = inject('staffToast');
@@ -147,6 +172,29 @@ const handleSubmit = async () => {
       staffToast.value?.display('Gagal memperbarui role akses.', 'error');
    } finally {
       isSubmitting.value = false;
+   }
+};
+
+const confirmDelete = (user) => {
+   userToDelete.value = user;
+   isDeleteModalOpen.value = true;
+};
+
+const executeDelete = async () => {
+   if (!userToDelete.value) return;
+   
+   const id = userToDelete.value.id;
+   isDeleteModalOpen.value = false;
+   
+   try {
+      await api.delete(`/users/${id}`);
+      staffToast.value?.display('Akun user telah berhasil dihapus dari sistem.', 'info', 'Operasi Selesai');
+      fetchUsers();
+   } catch (err) {
+      console.error('Delete failed', err);
+      staffToast.value?.display('Gagal menghapus akun user ini.', 'error');
+   } finally {
+      userToDelete.value = null;
    }
 };
 
