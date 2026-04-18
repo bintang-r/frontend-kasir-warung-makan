@@ -8,10 +8,15 @@
       <!-- Branding Side (Visible on Desktop) -->
       <div class="hidden lg:flex w-1/2 bg-gray-900 p-16 flex-col justify-between relative overflow-hidden">
          <div class="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
-         <div class="relative z-10 text-white">
-            <h2 class="text-4xl font-black tracking-tight leading-tight">Rumah Makan<br/><span class="text-primary">Siantar Minang</span></h2>
-            <p class="text-xs font-bold text-gray-500 uppercase tracking-[0.3em] mt-4">Cita Rasa Autentik Minang</p>
-         </div>
+          <div class="relative z-10 text-white">
+             <!-- Dynamic Logo -->
+             <div v-if="brandingStore.fullLogoUrl" class="mb-8">
+               <img :src="brandingStore.fullLogoUrl" class="h-20 w-auto object-contain rounded-2xl shadow-premium border-2 border-primary/20 bg-white/10 p-2" />
+             </div>
+             
+             <h2 class="text-4xl font-black tracking-tight leading-tight" v-html="formattedBrandName"></h2>
+             <p class="text-xs font-bold text-gray-500 uppercase tracking-[0.3em] mt-4">Cita Rasa Autentik Minang</p>
+          </div>
          <div class="relative z-10">
             <div class="w-12 h-1 bg-primary mb-6"></div>
             <p class="text-sm font-medium text-gray-400 leading-relaxed">Selamat datang di sistem manajemen terpadu. Silakan masuk untuk memulai pesanan atau mengelola operasional restoran.</p>
@@ -87,7 +92,19 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useBrandingStore } from '../stores/branding';
+import { computed } from 'vue';
 import NotificationToast from '../components/NotificationToast.vue';
+
+const brandingStore = useBrandingStore();
+
+const formattedBrandName = computed(() => {
+  const name = brandingStore.restaurantName || 'RM Siantar Minang';
+  const words = name.split(' ');
+  if (words.length <= 1) return name;
+  const lastWord = words.pop();
+  return `${words.join(' ')}<br/><span class="text-primary">${lastWord}</span>`;
+});
 
 const router = useRouter();
 const route = useRoute();

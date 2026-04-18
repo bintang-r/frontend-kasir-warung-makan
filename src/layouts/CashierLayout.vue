@@ -5,14 +5,17 @@
 
       <!-- Brand -->
       <div class="flex items-center gap-3 px-5 border-r border-gray-100 flex-shrink-0">
-        <div class="bg-gray-900 p-1.5 rounded-lg">
-          <i class="fa-solid fa-cash-register text-white text-sm"></i>
+          <div class="h-10 w-10 bg-primary/20 p-2 rounded-xl flex items-center justify-center overflow-hidden">
+            <template v-if="brandingStore.fullLogoUrl">
+              <img :src="brandingStore.fullLogoUrl" class="w-full h-full object-contain" />
+            </template>
+            <i v-else class="fa-solid fa-cash-register text-primary"></i>
+          </div>
+          <div>
+            <h1 class="font-black text-sm tracking-tight leading-none text-gray-900 uppercase">Cashier POS</h1>
+            <p class="text-[9px] font-bold text-gray-400 uppercase mt-1 tracking-widest">{{ brandingStore.restaurantName }}</p>
+          </div>
         </div>
-        <div>
-          <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">KASIR</p>
-          <p class="text-sm font-black text-gray-900 leading-none">POINT OF SALE</p>
-        </div>
-      </div>
 
       <!-- "Semua Tagihan" — Fixed, never scrolls -->
       <div class="flex items-center px-3 border-r border-gray-100 flex-shrink-0">
@@ -163,9 +166,11 @@
 import { ref, computed, onMounted, onUnmounted, provide } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
+import { useBrandingStore } from '../stores/branding';
 import api from '../services/api';
 import NotificationToast from '../components/NotificationToast.vue';
 
+const brandingStore = useBrandingStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const user = authStore.user;

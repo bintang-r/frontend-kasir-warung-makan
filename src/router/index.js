@@ -22,6 +22,7 @@ const AdminMenuManagement = () => import('../views/staff/AdminMenuManagement.vue
 const AdminUserManagement = () => import('../views/staff/AdminUserManagement.vue');
 const AdminInfrastructure = () => import('../views/staff/AdminInfrastructure.vue');
 const AdminPromoManagement = () => import('../views/staff/AdminPromoManagement.vue');
+const AdminBranding = () => import('../views/staff/AdminBranding.vue');
 const AdminOrderManagement = () => import('../views/staff/AdminOrderManagement.vue');
 const AdminPaymentManagement = () => import('../views/staff/AdminPaymentManagement.vue');
 const AdminReviewManagement = () => import('../views/staff/AdminReviewManagement.vue');
@@ -112,6 +113,12 @@ const routes = [
         component: AdminWhatsappSettings, 
         name: 'AdminWhatsappSettings', 
         meta: { role: 'ADMIN', title: 'Integrasi WhatsApp Bot' } 
+      },
+      { 
+        path: 'admin/branding', 
+        component: AdminBranding, 
+        name: 'AdminBranding', 
+        meta: { role: 'ADMIN', title: 'Identitas & Branding Warung' } 
       },
       { 
         path: 'superadmin/audit', 

@@ -4,12 +4,17 @@
     <aside class="w-72 bg-gray-900 text-white flex flex-col shadow-2xl z-50 fixed h-full transition-all">
       <div class="px-8 py-10 border-b border-white/10">
         <div class="flex items-center gap-3">
-          <div class="bg-primary p-2 rounded-xl shadow-premium">
-            <i class="fa-solid fa-cloud-sun text-white text-lg"></i>
+          <div class="bg-primary p-2 rounded-xl shadow-premium w-12 h-12 flex items-center justify-center overflow-hidden">
+            <template v-if="brandingStore.fullLogoUrl">
+              <img :src="brandingStore.fullLogoUrl" class="w-full h-full object-contain" />
+            </template>
+            <template v-else>
+              <i class="fa-solid fa-cloud-sun text-white text-lg"></i>
+            </template>
           </div>
           <div>
             <h1 class="font-black text-sm tracking-tight leading-none">STAFF <span class="text-primary">PORTAL</span></h1>
-            <p class="text-[9px] font-bold text-gray-500 uppercase mt-1 tracking-widest">RM Siantar Minang</p>
+            <p class="text-[9px] font-bold text-gray-500 uppercase mt-1 tracking-widest">{{ brandingStore.restaurantName }}</p>
           </div>
         </div>
       </div>
@@ -122,12 +127,14 @@
 <script setup>
 import { computed, ref, provide, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '../stores/auth';
+import { useAuthStore } from '../../stores/auth';
+import { useBrandingStore } from '../../stores/branding';
 import NotificationToast from '../components/NotificationToast.vue';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const brandingStore = useBrandingStore();
 const user = authStore.user;
 
 const staffToast = ref(null);
@@ -182,6 +189,7 @@ const navItems = computed(() => {
       { name: 'Manajemen User', path: '/staff/admin/users', icon: 'fa-solid fa-users-gear' },
       { name: 'Ulasan Pelanggan', path: '/staff/admin/reviews', icon: 'fa-solid fa-star-half-stroke' },
       { name: 'Promo & Voucher', path: '/staff/admin/promos', icon: 'fa-solid fa-ticket' },
+      { name: 'Identitas Warung', path: '/staff/admin/branding', icon: 'fa-solid fa-store' },
       { name: 'Integrasi WhatsApp', path: '/staff/admin/whatsapp', icon: 'fa-brands fa-whatsapp' }
     );
 
