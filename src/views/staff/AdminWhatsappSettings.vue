@@ -41,6 +41,7 @@
                 {{ saving ? 'Menyimpan...' : 'Simpan Nomor' }}
               </button>
               <button 
+                v-if="userRole === 'SUPERADMIN'"
                 @click="sendTestMessage" 
                 type="button"
                 :disabled="!status.isReady || testing"
@@ -54,8 +55,8 @@
           </form>
         </div>
 
-        <!-- Connection Status & QR -->
-        <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-premium overflow-hidden relative">
+        <!-- Connection Status & QR (Superadmin Only) -->
+        <div v-if="userRole === 'SUPERADMIN'" class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-premium overflow-hidden relative">
           <div class="flex justify-between items-center mb-6">
             <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">Status Koneksi</h4>
             <span 
@@ -157,6 +158,10 @@ import { ref, onMounted, inject } from 'vue';
 import api from '../../services/api';
 
 const staffToast = inject('staffToast');
+import { useAuthStore } from '../../stores/auth';
+const authStore = useAuthStore();
+const userRole = authStore.userRole;
+
 const status = ref({ isReady: false, qrCode: null });
 const logs = ref([]);
 const form = ref({ number: '' });

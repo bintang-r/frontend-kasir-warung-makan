@@ -23,7 +23,7 @@
              <transition name="dropdown">
                 <div v-if="isRoleDropdownOpen" class="absolute top-full right-0 mt-3 w-48 bg-white rounded-3xl shadow-2xl border border-gray-100 py-3 z-[110] overflow-hidden">
                    <button 
-                      v-for="role in ['ADMIN', 'KASIR', 'KITCHEN', 'DRIVER']" :key="role"
+                      v-for="role in ['SUPERADMIN', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER']" :key="role"
                       @click="openCreateModal(role)"
                       class="w-full text-left px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary hover:bg-gray-50 transition-all flex items-center justify-between"
                    >
