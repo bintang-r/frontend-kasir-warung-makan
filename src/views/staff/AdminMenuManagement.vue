@@ -28,6 +28,9 @@
           <table class="w-full text-left">
              <thead>
                 <tr class="border-b border-gray-50">
+                   <th class="pb-6 w-10">
+                     <input type="checkbox" class="w-4 h-4 accent-primary rounded" :checked="allSelected" @change="toggleSelectAll" />
+                   </th>
                    <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Foto</th>
                    <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Menu</th>
                    <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kategori</th>
@@ -37,7 +40,10 @@
                 </tr>
              </thead>
              <tbody class="divide-y divide-gray-50">
-                <tr v-for="menu in filteredMenus" :key="menu.id" class="group hover:bg-gray-50/50 transition-colors">
+                <tr v-for="menu in filteredMenus" :key="menu.id" class="group hover:bg-gray-50/50 transition-colors" :class="selectedIds.includes(menu.id) ? 'bg-primary/5' : ''">
+                   <td class="py-6">
+                     <input type="checkbox" class="w-4 h-4 accent-primary rounded" :value="menu.id" v-model="selectedIds" />
+                   </td>
                    <td class="py-6">
                       <img :src="getImageUrl(menu.image)" class="w-14 h-14 rounded-2xl object-cover shadow-sm grayscale group-hover:grayscale-0 transition-all border border-gray-100" />
                    </td>
@@ -67,6 +73,23 @@
           </table>
        </div>
     </div>
+
+    <!-- Bulk Action Bar -->
+    <transition name="slide-up">
+      <div v-if="selectedIds.length > 0" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 rounded-[28px] px-8 py-5 flex items-center gap-6 shadow-2xl shadow-gray-900/40 border border-white/10">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-black text-sm">{{ selectedIds.length }}</div>
+          <span class="text-white font-bold text-sm">menu dipilih</span>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <button @click="confirmBulkDelete" class="flex items-center gap-2 bg-red-500 hover:bg-red-400 text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95">
+          <i class="fa-solid fa-trash-can"></i> Hapus Terpilih
+        </button>
+        <button @click="selectedIds = []" class="text-gray-400 hover:text-white transition-colors p-2">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
 
     <!-- Menu Modal -->
     <div v-if="isModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-6">
@@ -156,9 +179,10 @@
           <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
              <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
           </div>
-          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus Menu?</h3>
+          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">{{ isBulkDelete ? `Hapus ${selectedIds.length} Menu?` : 'Hapus Menu?' }}</h3>
           <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
-             Apakah Anda yakin ingin menghapus data <strong>{{ menuToDelete?.name }}</strong>? Data yang dihapus tidak dapat dikembalikan, dan seluruh riwayat pesanan yang terkait dengan menu ini ikut terhapus otomatis.
+             <span v-if="isBulkDelete">Anda akan menghapus <strong>{{ selectedIds.length }} menu</strong> sekaligus. Data yang dihapus tidak dapat dikembalikan.</span>
+             <span v-else>Apakah Anda yakin ingin menghapus <strong>{{ menuToDelete?.name }}</strong>? Data yang dihapus tidak dapat dikembalikan.</span>
           </p>
           <div class="flex gap-4">
              <button @click="isDeleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">
@@ -185,6 +209,8 @@ const isModalOpen = ref(false);
 const isSubmitting = ref(false);
 const isDeleteModalOpen = ref(false);
 const menuToDelete = ref(null);
+const selectedIds = ref([]);
+const isBulkDelete = ref(false);
 
 const staffToast = inject('staffToast');
 
@@ -214,6 +240,20 @@ const filteredMenus = computed(() => {
    if (!selectedCategory.value) return menus.value;
    return menus.value.filter(m => m.categoryId === selectedCategory.value);
 });
+
+const allSelected = computed(() => {
+  if (filteredMenus.value.length === 0) return false;
+  return filteredMenus.value.every(m => selectedIds.value.includes(m.id));
+});
+
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    selectedIds.value = selectedIds.value.filter(id => !filteredMenus.value.some(m => m.id === id));
+  } else {
+    const newIds = filteredMenus.value.map(m => m.id).filter(id => !selectedIds.value.includes(id));
+    selectedIds.value = [...selectedIds.value, ...newIds];
+  }
+};
 
 const fetchData = async () => {
    try {
@@ -273,23 +313,32 @@ const handleSubmit = async () => {
 };
 
 const confirmDelete = (menu) => {
+   isBulkDelete.value = false;
    menuToDelete.value = menu;
    isDeleteModalOpen.value = true;
 };
 
+const confirmBulkDelete = () => {
+   isBulkDelete.value = true;
+   isDeleteModalOpen.value = true;
+};
+
 const executeDelete = async () => {
-   if (!menuToDelete.value) return;
-   
-   const id = menuToDelete.value.id;
    isDeleteModalOpen.value = false;
-   
    try {
-      await api.delete(`/menus/${id}`);
-      staffToast.value?.display('Item menu telah dihapus secara permanen beserta data terkait.', 'info', 'Hapus Data');
+      if (isBulkDelete.value) {
+         await api.post('/menus/bulk-delete', { ids: selectedIds.value.map(String) });
+         staffToast.value?.display(`${selectedIds.value.length} menu berhasil dihapus.`, 'info', 'Bulk Delete');
+         selectedIds.value = [];
+      } else {
+         if (!menuToDelete.value) return;
+         await api.delete(`/menus/${menuToDelete.value.id}`);
+         staffToast.value?.display('Item menu telah dihapus secara permanen.', 'info', 'Hapus Data');
+      }
       fetchData();
    } catch (err) {
       console.error('Delete failed', err);
-      staffToast.value?.display('Gagal menghapus entitas menu.', 'error');
+      staffToast.value?.display('Gagal menghapus data.', 'error');
    } finally {
       menuToDelete.value = null;
    }
@@ -310,4 +359,6 @@ onMounted(fetchData);
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateX(-50%) translateY(30px); }
 </style>
