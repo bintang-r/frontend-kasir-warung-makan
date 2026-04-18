@@ -25,7 +25,7 @@ const AdminPromoManagement = () => import('../views/staff/AdminPromoManagement.v
 const AdminOrderManagement = () => import('../views/staff/AdminOrderManagement.vue');
 const AdminPaymentManagement = () => import('../views/staff/AdminPaymentManagement.vue');
 const AdminReviewManagement = () => import('../views/staff/AdminReviewManagement.vue');
-const AdminSystemLogs = () => import('../views/staff/AdminSystemLogs.vue');
+const SuperadminLogHistory = () => import('../views/staff/SuperadminLogHistory.vue');
 const AdminWhatsappSettings = () => import('../views/staff/AdminWhatsappSettings.vue');
 
 const CashierDashboard = () => import('../views/staff/CashierDashboard.vue');
@@ -114,10 +114,10 @@ const routes = [
         meta: { role: 'ADMIN', title: 'Integrasi WhatsApp Bot' } 
       },
       { 
-        path: 'admin/system', 
-        component: AdminSystemLogs, 
-        name: 'AdminSystemLogs', 
-        meta: { role: 'ADMIN', title: 'System Logs & Audit' } 
+        path: 'superadmin/audit', 
+        component: SuperadminLogHistory, 
+        name: 'SuperadminLogHistory', 
+        meta: { role: 'SUPERADMIN', title: 'System Audit Logs' } 
       },
     ]
   },
@@ -167,13 +167,10 @@ router.beforeEach((to, from, next) => {
   // 1. Handling Public/Universal Login paths
   if (to.name === 'Login' || to.name === 'Register' || to.name === 'Home') {
     if (isAuthenticated) {
-      const rolePathMap = {
-        ADMIN: '/staff/admin',
-        KASIR: '/staff/cashier',
-        KITCHEN: '/staff/kitchen',
-        DRIVER: '/staff/admin', // fallback
-      };
-      if (isStaff) return next({ path: rolePathMap[userRole] || '/staff/admin' });
+      if (isStaff) {
+        if (userRole === 'SUPERADMIN' || userRole === 'ADMIN') return next({ path: '/staff/admin' });
+        return next({ path: rolePathMap[userRole] || '/staff/admin' });
+      }
       if (to.name !== 'Home') return next({ name: 'Menu' });
     }
     return next();
@@ -185,7 +182,7 @@ router.beforeEach((to, from, next) => {
     if (!isStaff) return next({ name: 'Home' }); // Customer blocked from staff area
 
     // Strict sub-role checking
-    if (to.meta.role && userRole !== to.meta.role) {
+    if (to.meta.role && userRole !== to.meta.role && userRole !== 'SUPERADMIN') {
       const rolePathMap = {
         ADMIN: '/staff/admin',
         KASIR: '/staff/cashier',

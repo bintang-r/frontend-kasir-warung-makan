@@ -12,7 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value);
   const isGuest = computed(() => !!guestToken.value);
   const isStaff = computed(() => {
-    return user.value && ['ADMIN', 'KASIR', 'KITCHEN', 'DRIVER'].includes(user.value.role);
+    return user.value && ['SUPERADMIN', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER'].includes(user.value.role);
   });
   const isCustomer = computed(() => {
     return user.value && user.value.role === 'CUSTOMER';

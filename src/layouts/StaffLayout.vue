@@ -172,7 +172,7 @@ const formattedDate = computed(() => {
 const navItems = computed(() => {
   const items = [];
   
-  if (user?.role === 'ADMIN') {
+  if (user?.role === 'SUPERADMIN' || user?.role === 'ADMIN') {
     items.push(
       { name: 'Dashboard Admin', path: '/staff/admin', icon: 'fa-solid fa-chart-pie' },
       { name: 'Pantau Pesanan', path: '/staff/admin/orders', icon: 'fa-solid fa-receipt' },
@@ -182,9 +182,14 @@ const navItems = computed(() => {
       { name: 'Manajemen User', path: '/staff/admin/users', icon: 'fa-solid fa-users-gear' },
       { name: 'Ulasan Pelanggan', path: '/staff/admin/reviews', icon: 'fa-solid fa-star-half-stroke' },
       { name: 'Promo & Voucher', path: '/staff/admin/promos', icon: 'fa-solid fa-ticket' },
-      { name: 'Integrasi WhatsApp', path: '/staff/admin/whatsapp', icon: 'fa-brands fa-whatsapp' },
-      { name: 'Audit & System', path: '/staff/admin/system', icon: 'fa-solid fa-shield-halved' }
+      { name: 'Integrasi WhatsApp', path: '/staff/admin/whatsapp', icon: 'fa-brands fa-whatsapp' }
     );
+
+    if (user?.role === 'SUPERADMIN') {
+      items.push(
+        { name: 'Audit & System', path: '/staff/superadmin/audit', icon: 'fa-solid fa-shield-halved' }
+      );
+    }
   } else if (user?.role === 'KASIR') {
     items.push(
       { name: 'Kasir Panel', path: '/staff/cashier', icon: 'fa-solid fa-cash-register' }

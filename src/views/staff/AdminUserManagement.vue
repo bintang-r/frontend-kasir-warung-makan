@@ -203,7 +203,7 @@ const roleDropdownRef = ref(null);
 const isSubmitting = ref(false);
 const isDeleteModalOpen = ref(false);
 const userToDelete = ref(null);
-const availableRoles = ['CUSTOMER', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER'];
+const availableRoles = ['SUPERADMIN', 'ADMIN', 'CUSTOMER', 'KASIR', 'KITCHEN', 'DRIVER'];
 
 const staffToast = inject('staffToast');
 
@@ -295,6 +295,7 @@ const executeDelete = async () => {
 
 const getRoleClass = (role) => {
    const classes = {
+      SUPERADMIN: 'bg-indigo-700 text-white shadow-lg shadow-indigo-200',
       ADMIN: 'bg-primary text-white shadow-lg shadow-primary/20',
       KASIR: 'bg-blue-600 text-white shadow-lg shadow-blue-200',
       KITCHEN: 'bg-orange-500 text-white shadow-lg shadow-orange-100',
