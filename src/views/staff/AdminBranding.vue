@@ -40,17 +40,29 @@
           <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest mb-6">Logo Restoran</h4>
           
           <div class="flex flex-col items-center">
-            <!-- Current Logo Preview -->
-            <div class="w-48 h-48 bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden mb-6 group relative shadow-inner">
-               <template v-if="brandingStore.fullLogoUrl">
+            <!-- Drop Zone / Preview Area -->
+            <div 
+              class="w-48 h-48 rounded-[40px] border-2 border-dashed flex items-center justify-center overflow-hidden mb-6 group relative shadow-inner transition-all duration-300"
+              :class="isDragging ? 'border-primary bg-primary/5 scale-105' : 'border-gray-200 bg-gray-50'"
+              @dragover.prevent="onDragOver"
+              @dragleave.prevent="onDragLeave"
+              @drop.prevent="onDrop"
+            >
+               <!-- Preview Logic -->
+               <template v-if="tempPreview">
+                  <img :src="tempPreview" class="w-full h-full object-contain p-4 animate-in fade-in zoom-in duration-300" />
+               </template>
+               <template v-else-if="brandingStore.fullLogoUrl">
                   <img :src="brandingStore.fullLogoUrl" class="w-full h-full object-contain p-4" />
                </template>
                <template v-else>
                   <i class="fa-solid fa-image text-gray-300 text-4xl"></i>
                </template>
                
-               <div class="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" @click="triggerFileInput">
-                  <i class="fa-solid fa-camera text-white text-2xl"></i>
+               <!-- Hover Overlay -->
+               <div class="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white gap-2" @click="triggerFileInput">
+                  <i class="fa-solid fa-camera text-2xl"></i>
+                  <span class="text-[8px] font-black uppercase tracking-widest">Ganti Gambar</span>
                </div>
             </div>
 
@@ -62,16 +74,37 @@
               class="hidden"
             />
 
-            <p class="text-[9px] font-bold text-gray-400 text-center uppercase tracking-widest leading-relaxed px-4 mb-6">
-              Gunakan file PNG atau SVG dengan latar transparan untuk hasil terbaik.
-            </p>
-
-            <button 
-              @click="triggerFileInput"
-              class="w-full py-4 border-2 border-gray-100 hover:border-primary rounded-3xl text-[10px] font-black text-gray-900 uppercase tracking-widest transition-all"
-            >
-              Pilih File Logo
-            </button>
+            <!-- Manual Controls -->
+            <div v-if="selectedFile" class="w-full space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                <button 
+                  @click="handleUpload"
+                  :disabled="uploading"
+                  class="w-full py-4 bg-primary text-white rounded-3xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <i v-if="uploading" class="fa-solid fa-circle-notch animate-spin"></i>
+                  <i v-else class="fa-solid fa-cloud-arrow-up"></i>
+                  {{ uploading ? 'Mengunggah...' : 'Simpan Logo Baru' }}
+                </button>
+                <button 
+                  @click="cancelSelection"
+                  :disabled="uploading"
+                  class="w-full py-4 bg-gray-100 text-gray-500 rounded-3xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
+                >
+                  Batalkan
+                </button>
+            </div>
+            
+            <div v-else class="w-full">
+              <p class="text-[9px] font-bold text-gray-400 text-center uppercase tracking-widest leading-relaxed px-4 mb-6">
+                Klik atau tarik gambar ke area di atas (PNG/SVG).
+              </p>
+              <button 
+                @click="triggerFileInput"
+                class="w-full py-4 border-2 border-gray-100 hover:border-primary rounded-3xl text-[10px] font-black text-gray-900 uppercase tracking-widest transition-all"
+              >
+                Pilih File Logo
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -152,6 +185,12 @@ const restaurantName = ref('');
 const savingName = ref(false);
 const fileInput = ref(null);
 
+// Logo Upload Logic
+const selectedFile = ref(null);
+const tempPreview = ref(null);
+const uploading = ref(false);
+const isDragging = ref(false);
+
 onMounted(() => {
   if (brandingStore.restaurantName) {
     restaurantName.value = brandingStore.restaurantName;
@@ -182,12 +221,43 @@ const triggerFileInput = () => {
   fileInput.value.click();
 };
 
-const onFileChange = async (e) => {
+const onFileChange = (e) => {
   const file = e.target.files?.[0];
-  if (!file) return;
+  if (file) handleFileSelection(file);
+};
 
+const handleFileSelection = (file) => {
+  if (!file.type.match('image.*')) {
+    staffToast.value?.display('Hanya file gambar yang diperbolehkan!', 'error');
+    return;
+  }
+  selectedFile.value = file;
+  tempPreview.value = URL.createObjectURL(file);
+};
+
+const onDragOver = () => { isDragging.value = true; };
+const onDragLeave = () => { isDragging.value = false; };
+const onDrop = (e) => {
+  isDragging.value = false;
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelection(file);
+};
+
+const cancelSelection = () => {
+  selectedFile.value = null;
+  if (tempPreview.value) {
+    URL.revokeObjectURL(tempPreview.value);
+    tempPreview.value = null;
+  }
+  if (fileInput.value) fileInput.value.value = '';
+};
+
+const handleUpload = async () => {
+  if (!selectedFile.value) return;
+  
+  uploading.value = true;
   const formData = new FormData();
-  formData.append('logo', file);
+  formData.append('logo', selectedFile.value);
 
   try {
     const res = await api.post('/infrastructure/logo', formData, {
@@ -195,8 +265,11 @@ const onFileChange = async (e) => {
     });
     brandingStore.logoUrl = res.data.value;
     staffToast.value?.display('Logo berhasil diperbarui!', 'success');
+    cancelSelection();
   } catch (err) {
     staffToast.value?.display('Gagal mengunggah logo', 'error');
+  } finally {
+    uploading.value = false;
   }
 };
 </script>
