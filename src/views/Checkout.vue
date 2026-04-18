@@ -196,7 +196,6 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import { useOrderStore } from '../stores/order';
-import api from '../services/api';
 import NotificationToast from '../components/NotificationToast.vue';
 
 const cartStore = useCartStore();

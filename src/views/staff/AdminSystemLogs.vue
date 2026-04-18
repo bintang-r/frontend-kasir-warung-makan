@@ -7,9 +7,6 @@
            <p class="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Pantau aktivitas chatbot, sesi tamu, dan notifikasi</p>
         </div>
         <div class="flex items-center gap-4">
-           <button v-if="currentTab === 'chatbot' && chatbotLogs.length > 0" @click="confirmClearAll" class="bg-red-50 text-red-500 px-6 py-3 rounded-2xl border border-red-100 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
-              <i class="fa-solid fa-broom mr-2"></i> Bersihkan Semua Log
-           </button>
         </div>
      </div>
 
@@ -25,35 +22,7 @@
        </button>
     </div>
 
-    <!-- Chatbot Logs -->
-    <div v-if="currentTab === 'chatbot'" class="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden p-10 animate-fade-in">
-       <div class="overflow-x-auto">
-          <table class="w-full text-left">
-             <thead>
-                <tr class="border-b border-gray-50">
-                   <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Waktu</th>
-                   <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">User</th>
-                   <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Pesan Masuk</th>
-                   <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Respon AI</th>
-                   <th class="pb-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Aksi</th>
-                </tr>
-             </thead>
-             <tbody class="divide-y divide-gray-50">
-                <tr v-for="log in chatbotLogs" :key="log.id" class="group hover:bg-gray-50/50 transition-colors text-xs">
-                   <td class="py-6 whitespace-nowrap text-gray-400 font-medium tabular-nums">{{ formatDateTime(log.createdAt) }}</td>
-                   <td class="py-6 font-black text-gray-900">{{ log.user?.name || 'Guest Guest' }}</td>
-                   <td class="py-6 font-bold text-gray-600 max-w-xs truncate">{{ log.message }}</td>
-                   <td class="py-6 italic text-primary/80 max-w-xs truncate">{{ log.response }}</td>
-                   <td class="py-6 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button @click="confirmDelete('log', log)" class="text-red-400 hover:text-red-600 transition-colors">
-                         <i class="fa-solid fa-trash-can"></i>
-                      </button>
-                   </td>
-                </tr>
-             </tbody>
-          </table>
-       </div>
-    </div>
+
 
     <!-- Guest Sessions -->
     <div v-if="currentTab === 'sessions'" class="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden p-10 animate-fade-in">
@@ -141,28 +110,23 @@
 import { ref, onMounted, watch, inject } from 'vue';
 import api from '../../services/api';
 
-const currentTab = ref('chatbot');
-const chatbotLogs = ref([]);
+const currentTab = ref('sessions');
 const guestSessions = ref([]);
 const notificationLogs = ref([]);
 const staffToast = inject('staffToast');
 
 const deleteModalOpen = ref(false);
-const deleteType = ref(''); // 'log', 'session', 'clearLogs'
+const deleteType = ref(''); // 'session' or 'other'
 const itemToDelete = ref(null);
 
 const tabs = [
-  { label: 'Chatbot Logs', value: 'chatbot' },
   { label: 'Active Sessions', value: 'sessions' },
   { label: 'Notification History', value: 'notifications' }
 ];
 
 const fetchData = async () => {
   try {
-    if (currentTab.value === 'chatbot') {
-      const res = await api.get('/chatbot/logs');
-      chatbotLogs.value = res.data;
-    } else if (currentTab.value === 'sessions') {
+    if (currentTab.value === 'sessions') {
       const res = await api.get('/guest/admin');
       guestSessions.value = res.data;
     } else if (currentTab.value === 'notifications') {
@@ -191,13 +155,7 @@ const confirmClearAll = () => {
 const executeDelete = async () => {
    deleteModalOpen.value = false;
    try {
-      if (deleteType.value === 'clearLogs') {
-         await api.delete('/chatbot/logs');
-         staffToast.value?.display('Seluruh log chatbot telah dibersihkan.', 'success', 'System Maintenance');
-      } else if (deleteType.value === 'log') {
-         await api.delete(`/chatbot/logs/${itemToDelete.value.id}`);
-         staffToast.value?.display('Log aktivitas berhasil dihapus.', 'info');
-      } else if (deleteType.value === 'session') {
+      if (deleteType.value === 'session') {
          await api.delete(`/guest/session/${itemToDelete.value.id}`);
          staffToast.value?.display('Sesi tamu telah dihapus dari sistem.', 'info');
       }

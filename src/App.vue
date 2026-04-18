@@ -3,7 +3,7 @@ import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from './stores/cart'
 import { useNotificationStore } from './stores/notification'
-import ChatbotWidget from './components/ChatbotWidget.vue'
+
 import CartDrawer from './components/CartDrawer.vue'
 import NotificationDrawer from './components/NotificationDrawer.vue'
 import BottomNav from './components/BottomNav.vue'
@@ -57,7 +57,7 @@ onMounted(() => {
         <BottomNav v-if="!hideCustomerUI" />
         <CartDrawer />
         <NotificationDrawer />
-        <ChatbotWidget />
+
       </template>
     </div>
   </div>
