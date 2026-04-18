@@ -127,8 +127,8 @@
 <script setup>
 import { computed, ref, provide, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '../../stores/auth';
-import { useBrandingStore } from '../../stores/branding';
+import { useAuthStore } from '../stores/auth';
+import { useBrandingStore } from '../stores/branding';
 import NotificationToast from '../components/NotificationToast.vue';
 
 const route = useRoute();
