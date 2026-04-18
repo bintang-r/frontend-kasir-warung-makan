@@ -6,12 +6,13 @@ export const useOrderStore = defineStore('order', () => {
   const currentOrder = ref(null);
   const orderHistory = ref([]);
 
-  const placeOrder = async (cartId, orderType, address) => {
+  const placeOrder = async (cartId, orderType, address, tableId) => {
     try {
       const response = await api.post('/orders', { 
         cartId: cartId.toString(), 
         orderType,
-        address
+        address,
+        tableId: tableId?.toString()
       });
       currentOrder.value = response.data;
       return currentOrder.value;

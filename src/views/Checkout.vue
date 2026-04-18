@@ -39,6 +39,31 @@
            </button>
         </div>
       </section>
+      
+      <!-- Table Selection (Only for DINE_IN) -->
+      <section v-if="orderType === 'DINE_IN'" class="mb-10 animate-fade-in">
+         <h3 class="font-black text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2 px-1">
+             <i class="fa-solid fa-chair text-primary"></i>
+             Pilih Meja / Tempat
+         </h3>
+         <div class="grid grid-cols-3 gap-3">
+            <button 
+              v-for="table in tables" :key="table.id"
+              @click="selectedTableId = table.id"
+              class="relative bg-white p-4 rounded-2xl border-2 transition-all active:scale-95 text-center overflow-hidden"
+              :class="selectedTableId === table.id ? 'border-primary shadow-lg shadow-primary/5' : 'border-white opacity-60'"
+            >
+               <p class="font-black text-gray-900 text-[10px] truncate">{{ table.name }}</p>
+               <div v-if="selectedTableId === table.id" class="absolute -top-1 -right-1 bg-primary text-white w-4 h-4 rounded-full flex items-center justify-center scale-75">
+                  <i class="fa-solid fa-check text-[8px]"></i>
+               </div>
+            </button>
+            <!-- Loading state for tables -->
+            <div v-if="tables.length === 0" class="col-span-3 py-6 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+               <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest">Memuat daftar meja...</p>
+            </div>
+         </div>
+      </section>
 
       <!-- Vouchers Section -->
       <section class="mb-10">
@@ -187,6 +212,18 @@ const voucherSuccess = ref(false);
 const discountAmount = ref(0);
 const isValidatingVoucher = ref(false);
 const isSubmitting = ref(false);
+const tables = ref([]);
+const selectedTableId = ref(null);
+
+const fetchTables = async () => {
+   try {
+      const resp = await api.get('/tables');
+      // Backend returns BigInt IDs, they might be strings in JSON
+      tables.value = resp.data.filter(t => t.status === 'AKTIF');
+   } catch (e) {
+      console.error('Failed to fetch tables', e);
+   }
+};
 
 const methods = [
    { val: 'CASH', icon: 'fa-solid fa-money-bill-wave', label: 'Tunai' },
@@ -227,10 +264,19 @@ const submitOrder = async () => {
   
   isSubmitting.value = true;
   try {
+    const { cartId, orderType: type, address: addr } = { cartId: cartStore.id.toString(), orderType: orderType.value, address: address.value };
+    
+    if (type === 'DINE_IN' && !selectedTableId.value) {
+      toast.value?.display('Silakan pilih nomor meja Anda 😊', 'error');
+      isSubmitting.value = false;
+      return;
+    }
+
     const order = await orderStore.placeOrder(
-      cartStore.id.toString(), 
-      orderType.value, 
-      address.value
+      cartId, 
+      type, 
+      addr,
+      selectedTableId.value
     );
     
     // Clear and Toast
@@ -258,6 +304,7 @@ const formatPrice = (price) => new Intl.NumberFormat('id-ID').format(price || 0)
 
 onMounted(() => {
   if (cartStore.items.length === 0) router.push('/menu');
+  fetchTables();
 });
 </script>
 
@@ -268,6 +315,13 @@ onMounted(() => {
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .shadow-premium {
    box-shadow: 0 25px 50px -12px rgba(216, 34, 42, 0.08);

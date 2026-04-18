@@ -117,7 +117,10 @@
                  <i class="fa-solid fa-bag-shopping text-primary"></i>
                  Rincian Order
               </h3>
-              <span class="bg-primary/10 text-primary text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border border-primary/10">{{ order.orderType }}</span>
+              <div class="flex items-center gap-2">
+                 <span v-if="order.table" class="bg-primary text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border border-primary/10 shadow-sm shadow-primary/20">MEJA: {{ order.table.name }}</span>
+                 <span class="bg-primary/10 text-primary text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border border-primary/10">{{ order.orderType }}</span>
+              </div>
            </div>
            
            <div class="space-y-6 relative z-10">
