@@ -16,18 +16,24 @@
 
           <form @submit.prevent="saveSettings" class="space-y-6">
             <div>
-              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-4">Nomor WhatsApp Admin</label>
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-4">Nomor WhatsApp Admin</label>
+                <span v-if="isEnvFixed" class="bg-blue-50 text-blue-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest mr-4">System Config</span>
+              </div>
               <input 
                 v-model="form.number" 
+                :disabled="isEnvFixed"
                 type="text" 
                 placeholder="Contoh: 628123456789"
-                class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary focus:bg-white rounded-3xl font-bold text-gray-900 transition-all outline-none"
+                class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary focus:bg-white rounded-3xl font-bold text-gray-900 transition-all outline-none disabled:opacity-70 disabled:cursor-not-allowed"
               />
-              <p class="text-[10px] text-gray-400 mt-2 px-4 italic">*Gunakan kode negara (62) tanpa tanda +</p>
+              <p v-if="isEnvFixed" class="text-[9px] text-blue-400 mt-2 px-4 font-bold uppercase tracking-widest">Dikonfigurasi melalui file sistem (.env)</p>
+              <p v-else class="text-[10px] text-gray-400 mt-2 px-4 italic">*Gunakan kode negara (62) tanpa tanda +</p>
             </div>
 
             <div class="flex gap-3">
               <button 
+                v-if="!isEnvFixed"
                 type="submit" 
                 :disabled="saving"
                 class="flex-1 bg-gray-900 text-white py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-primary hover:shadow-xl hover:shadow-primary/20 transition-all disabled:opacity-50"
@@ -166,10 +172,13 @@ const fetchStatus = async () => {
   }
 };
 
+const isEnvFixed = ref(false);
+
 const fetchSettings = async () => {
   try {
     const res = await api.get('/whatsapp/settings');
     form.value.number = res.data.admin_whatsapp_number || '';
+    isEnvFixed.value = res.data.is_env_fixed;
   } catch (err) {
     console.error('Failed to fetch settings', err);
   }
