@@ -6,10 +6,13 @@
           <p class="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Kelola akun pelanggan dan akses internal staff</p>
        </div>
        <div class="flex gap-4">
-          <div class="bg-gray-50 px-6 py-3 rounded-2xl border border-gray-100 flex items-center gap-3">
+          <div class="bg-gray-50 px-6 py-3 rounded-2xl border border-gray-100 flex items-center gap-3 hidden md:flex">
              <i class="fa-solid fa-users text-primary"></i>
              <span class="text-sm font-black text-gray-900">{{ users.length }} <span class="text-[10px] text-gray-400 uppercase ml-1">Total Entitas</span></span>
           </div>
+          <button @click="openImportModal" class="bg-gray-100 text-gray-700 px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-file-excel text-green-600"></i> Import Excel
+           </button>
           <div class="relative" ref="roleDropdownRef">
              <button @click="isRoleDropdownOpen = !isRoleDropdownOpen" class="bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus"></i> Tambah Staff <i class="fa-solid fa-chevron-down text-[8px]"></i>
@@ -86,6 +89,49 @@
         <button @click="selectedIds = []" class="text-gray-400 hover:text-white transition-colors p-2"><i class="fa-solid fa-xmark"></i></button>
       </div>
     </transition>
+
+     <!-- Import Excel Modal -->
+     <div v-if="isImportModalOpen" class="fixed inset-0 z-[130] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="isImportModalOpen = false"></div>
+        <div class="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative z-10 p-10 animate-scale-in">
+           <div class="flex justify-between items-start mb-8">
+              <div>
+                 <h3 class="text-2xl font-black text-gray-900 tracking-tight">Import Data User</h3>
+                 <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">Unggah file Excel .xlsx</p>
+              </div>
+              <button @click="isImportModalOpen = false" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+           </div>
+           
+           <div class="space-y-6">
+              <button @click="downloadTemplate" class="w-full py-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 hover:text-green-600 transition-all group">
+                 <i class="fa-solid fa-download text-2xl text-gray-300 group-hover:text-green-500"></i>
+                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-green-600">Download Template Excel</span>
+              </button>
+ 
+              <div class="relative group">
+                 <input type="file" @change="handleExcelUpload" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                 <div class="w-full py-6 rounded-2xl bg-gray-50 border-2 border-gray-100 flex flex-col items-center justify-center gap-3 transition-all group-hover:border-primary">
+                    <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-primary">
+                       <i class="fa-solid fa-file-import text-xl"></i>
+                    </div>
+                    <div class="text-center">
+                       <p class="text-xs font-black text-gray-900">{{ uploadedExcelFile ? uploadedExcelFile.name : 'Pilih File Excel' }}</p>
+                       <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">{{ uploadedExcelFile ? 'Siap diproses' : 'Klik atau drag file ke sini' }}</p>
+                    </div>
+                 </div>
+              </div>
+ 
+              <button 
+                 @click="processImport" 
+                 :disabled="!uploadedExcelFile || isImporting"
+                 class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-primary transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 uppercase tracking-widest text-xs"
+              >
+                 <div v-if="isImporting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                 <span>{{ isImporting ? 'Memproses...' : 'Mulai Import' }}</span>
+              </button>
+           </div>
+        </div>
+     </div>
 
     <!-- Create User Modal -->
     <div v-if="isCreateModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-6">
@@ -182,6 +228,7 @@
 <script setup>
 import { ref, onMounted, computed, inject, onUnmounted } from 'vue';
 import api from '../../services/api';
+import * as XLSX from 'xlsx';
 
 const users = ref([]);
 const isModalOpen = ref(false);
@@ -196,6 +243,75 @@ const isBulkDelete = ref(false);
 const availableRoles = ['SUPERADMIN', 'ADMIN', 'CUSTOMER', 'KASIR', 'KITCHEN', 'DRIVER'];
 
 const staffToast = inject('staffToast');
+
+/* Excel Import Refs & Handlers */
+const isImportModalOpen = ref(false);
+const uploadedExcelFile = ref(null);
+const isImporting = ref(false);
+
+const openImportModal = () => {
+   uploadedExcelFile.value = null;
+   isImportModalOpen.value = true;
+};
+
+const downloadTemplate = () => {
+   const worksheet = XLSX.utils.json_to_sheet([
+      { name: 'Contoh User', email: 'contoh@gmail.com', password: 'password123', role: 'KASIR' }
+   ]);
+   const workbook = XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(workbook, worksheet, 'Template_User');
+   XLSX.writeFile(workbook, 'Template_Import_User.xlsx');
+};
+
+const handleExcelUpload = (e) => {
+   const file = e.target.files[0];
+   if (file) {
+     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+       uploadedExcelFile.value = file;
+     } else {
+       staffToast.value?.display('Harap unggah file berformat .xlsx atau .xls', 'warning');
+     }
+   }
+};
+
+const processImport = async () => {
+   if (!uploadedExcelFile.value) return;
+   isImporting.value = true;
+
+   try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+         const data = new Uint8Array(e.target.result);
+         const workbook = XLSX.read(data, { type: 'array' });
+         const sheetName = workbook.SheetNames[0];
+         const worksheet = workbook.Sheets[sheetName];
+         const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+         if (jsonData.length === 0) {
+            staffToast.value?.display('File Excel kosong.', 'error');
+            isImporting.value = false;
+            return;
+         }
+
+         try {
+            const res = await api.post('/users/bulk-import', { data: jsonData });
+            staffToast.value?.display(`${res.data.count} user berhasil diimpor`, 'success', 'Import Sukses');
+            isImportModalOpen.value = false;
+            fetchUsers();
+         } catch (err) {
+            console.error(err);
+            staffToast.value?.display('Gagal memproses data import ke server.', 'error');
+         } finally {
+            isImporting.value = false;
+         }
+      };
+      reader.readAsArrayBuffer(uploadedExcelFile.value);
+   } catch (err) {
+      staffToast.value?.display('Gagal membaca file Excel.', 'error');
+      isImporting.value = false;
+   }
+};
+/* End Excel */
 
 const allSelected = computed(() => {
   if (users.value.length === 0) return false;
