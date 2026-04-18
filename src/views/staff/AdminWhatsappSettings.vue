@@ -44,7 +44,7 @@
                 v-if="userRole === 'SUPERADMIN'"
                 @click="sendTestMessage" 
                 type="button"
-                :disabled="!status.isReady || testing"
+                :disabled="!status.sender?.isReady || testing"
                 class="bg-green-500 text-white px-6 rounded-3xl hover:bg-green-600 transition-all disabled:opacity-30"
                 title="Kirim Pesan Tes"
               >
@@ -55,41 +55,84 @@
           </form>
         </div>
 
-        <!-- Connection Status & QR (Superadmin Only) -->
+        <!-- Connection Status: Bot Pengirim (Superadmin Only) -->
         <div v-if="userRole === 'SUPERADMIN'" class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-premium overflow-hidden relative">
           <div class="flex justify-between items-center mb-6">
-            <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">Status Koneksi</h4>
+            <div>
+               <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">Bot Pengirim</h4>
+               <p class="text-[8px] font-bold text-gray-400 uppercase mt-0.5">(Superadmin)</p>
+            </div>
             <span 
-              :class="status.isReady ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'"
-              class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest"
+              :class="status.sender?.isReady ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'"
+              class="px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest"
             >
-              {{ status.isReady ? 'Terhubung' : 'Terputus' }}
+              {{ status.sender?.isReady ? 'Terhubung' : 'Terputus' }}
             </span>
           </div>
 
-          <div v-if="!status.isReady" class="flex flex-col items-center py-6">
-            <template v-if="status.qrCode">
-              <div class="p-4 bg-white border-2 border-primary/20 rounded-3xl shadow-lg mb-6">
-                <img :src="status.qrCode" alt="WA QR Code" class="w-48 h-48" />
+          <div v-if="!status.sender?.isReady" class="flex flex-col items-center py-4">
+            <template v-if="status.sender?.qrCode">
+              <div class="p-4 bg-white border-2 border-primary/20 rounded-[32px] shadow-lg mb-6">
+                <img :src="status.sender.qrCode" alt="Sender QR" class="w-40 h-40" />
               </div>
-              <p class="text-[10px] font-bold text-gray-500 text-center px-4 uppercase tracking-widest leading-relaxed">
-                Scan kode QR di atas menggunakan WhatsApp Anda untuk menghubungkan sistem
+              <p class="text-[9px] font-bold text-gray-500 text-center px-4 uppercase tracking-widest leading-relaxed">
+                Scan untuk menghubungkan bot pengirim notifikasi
               </p>
             </template>
             <template v-else>
-              <div class="w-48 h-48 bg-gray-50 rounded-3xl flex items-center justify-center border-2 border-dashed border-gray-200 mb-6">
-                <i class="fa-solid fa-circle-notch fa-spin text-primary text-3xl"></i>
+              <div class="w-40 h-40 bg-gray-50 rounded-[32px] flex items-center justify-center border-2 border-dashed border-gray-200 mb-6">
+                <i class="fa-solid fa-circle-notch fa-spin text-primary text-2xl"></i>
               </div>
-              <p class="text-[10px] font-bold text-gray-400 text-center uppercase tracking-widest">Menunggu Kode QR...</p>
+              <p class="text-[9px] font-bold text-gray-400 text-center uppercase tracking-widest">Menunggu Kode QR...</p>
             </template>
           </div>
           
-          <div v-else class="flex flex-col items-center py-10">
-             <div class="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center shadow-inner mb-6">
-                <i class="fa-solid fa-check-double text-4xl"></i>
+          <div v-else class="flex flex-col items-center py-6">
+             <div class="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center shadow-inner mb-4">
+                <i class="fa-solid fa-check-double text-3xl"></i>
              </div>
-             <p class="text-xs font-black text-gray-900 uppercase tracking-tight">Sistem Siap</p>
-             <p class="text-[10px] text-gray-400 mt-1 font-bold">Bot berjalan di latar belakang</p>
+             <p class="text-[10px] font-black text-gray-900 uppercase tracking-tight">Bot Pengirim Aktif</p>
+          </div>
+        </div>
+
+        <!-- Connection Status: Nomor Penerima (Admin & Superadmin) -->
+        <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-premium overflow-hidden relative">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+               <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">Akun Penerima</h4>
+               <p class="text-[8px] font-bold text-gray-400 uppercase mt-0.5">(Admin)</p>
+            </div>
+            <span 
+              :class="status.receiver?.isReady ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'"
+              class="px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest"
+            >
+              {{ status.receiver?.isReady ? 'Tersambung' : 'Belum Sambung' }}
+            </span>
+          </div>
+
+          <div v-if="!status.receiver?.isReady" class="flex flex-col items-center py-4">
+            <template v-if="status.receiver?.qrCode">
+              <div class="p-4 bg-white border-2 border-indigo-100 rounded-[32px] shadow-lg mb-6">
+                <img :src="status.receiver.qrCode" alt="Receiver QR" class="w-40 h-40" />
+              </div>
+              <p class="text-[9px] font-bold text-gray-500 text-center px-4 uppercase tracking-widest leading-relaxed">
+                Scan untuk deteksi nomor penerima secara otomatis
+              </p>
+            </template>
+            <template v-else>
+              <div class="w-40 h-40 bg-gray-50 rounded-[32px] flex items-center justify-center border-2 border-dashed border-gray-200 mb-6">
+                <i class="fa-solid fa-qrcode text-gray-200 text-2xl"></i>
+              </div>
+              <p class="text-[9px] font-bold text-gray-400 text-center uppercase tracking-widest">Admin silakan scan QR untuk set nomor</p>
+            </template>
+          </div>
+          
+          <div v-else class="flex flex-col items-center py-6">
+             <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center shadow-inner mb-4">
+                <i class="fa-solid fa-user-check text-3xl"></i>
+             </div>
+             <p class="text-[10px] font-black text-gray-900 uppercase tracking-tight">Nomor Terhubung</p>
+             <p class="text-[9px] text-gray-400 mt-1 font-bold">Bot akan mengirim ke akun ini</p>
           </div>
 
           <button 
@@ -154,7 +197,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import api from '../../services/api';
 
 const staffToast = inject('staffToast');
@@ -162,11 +205,15 @@ import { useAuthStore } from '../../stores/auth';
 const authStore = useAuthStore();
 const userRole = authStore.userRole;
 
-const status = ref({ isReady: false, qrCode: null });
+const status = ref({ 
+  sender: { isReady: false, qrCode: null },
+  receiver: { isReady: false, qrCode: null }
+});
 const logs = ref([]);
 const form = ref({ number: '' });
 const saving = ref(false);
 const testing = ref(false);
+const isEnvFixed = ref(false);
 
 const fetchStatus = async () => {
   try {
@@ -176,8 +223,6 @@ const fetchStatus = async () => {
     console.error('Failed to fetch status', err);
   }
 };
-
-const isEnvFixed = ref(false);
 
 const fetchSettings = async () => {
   try {
@@ -230,6 +275,13 @@ const formatDateTime = (dateStr) => {
          date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
 };
 
+// Auto-refresh settings if receiver becomes ready (to show the detected number)
+watch(() => status.value.receiver?.isReady, (newVal) => {
+  if (newVal) {
+    fetchSettings();
+  }
+});
+
 onMounted(() => {
   fetchStatus();
   fetchSettings();
@@ -237,13 +289,17 @@ onMounted(() => {
   
   // Poll status every 5s while waiting for QR
   const interval = setInterval(() => {
-    if (!status.value.isReady) {
+    if (!status.value.sender?.isReady || !status.value.receiver?.isReady) {
       fetchStatus();
     }
   }, 5000);
   
   onUnmounted(() => clearInterval(interval));
 });
-
-import { onUnmounted } from 'vue';
 </script>
+
+<style scoped>
+.shadow-premium {
+  box-shadow: 0 20px 50px -12px rgba(0,0,0,0.05);
+}
+</style>
