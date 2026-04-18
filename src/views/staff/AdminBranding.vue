@@ -137,19 +137,15 @@
         </div>
       </div>
     </div>
-
-    <NotificationToast ref="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject, watch } from 'vue';
 import { useBrandingStore } from '../../stores/branding';
 import api from '../../services/api';
-import NotificationToast from '../../components/NotificationToast.vue';
 
 const brandingStore = useBrandingStore();
-const toast = ref(null);
 const staffToast = inject('staffToast');
 
 const restaurantName = ref('');
@@ -157,7 +153,15 @@ const savingName = ref(false);
 const fileInput = ref(null);
 
 onMounted(() => {
-  restaurantName.value = brandingStore.restaurantName;
+  if (brandingStore.restaurantName) {
+    restaurantName.value = brandingStore.restaurantName;
+  }
+});
+
+watch(() => brandingStore.restaurantName, (newVal) => {
+  if (newVal && !restaurantName.value) {
+    restaurantName.value = newVal;
+  }
 });
 
 const saveName = async () => {
@@ -166,9 +170,9 @@ const saveName = async () => {
   try {
     await api.patch('/infrastructure/branding', { name: restaurantName.value });
     brandingStore.restaurantName = restaurantName.value;
-    staffToast.value?.show('Nama warung berhasil diperbarui!', 'success');
+    staffToast.value?.display('Nama warung berhasil diperbarui!', 'success');
   } catch (err) {
-    staffToast.value?.show('Gagal memperbarui nama warung', 'error');
+    staffToast.value?.display('Gagal memperbarui nama warung', 'error');
   } finally {
     savingName.value = false;
   }
@@ -179,7 +183,7 @@ const triggerFileInput = () => {
 };
 
 const onFileChange = async (e) => {
-  const file = e.target.target?.files?.[0] || e.target.files[0];
+  const file = e.target.files?.[0];
   if (!file) return;
 
   const formData = new FormData();
@@ -190,9 +194,9 @@ const onFileChange = async (e) => {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     brandingStore.logoUrl = res.data.value;
-    staffToast.value?.show('Logo berhasil diperbarui!', 'success');
+    staffToast.value?.display('Logo berhasil diperbarui!', 'success');
   } catch (err) {
-    staffToast.value?.show('Gagal mengunggah logo', 'error');
+    staffToast.value?.display('Gagal mengunggah logo', 'error');
   }
 };
 </script>
