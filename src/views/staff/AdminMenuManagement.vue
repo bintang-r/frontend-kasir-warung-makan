@@ -283,10 +283,12 @@ const openImportModal = () => {
 };
 
 const downloadTemplate = () => {
-   // Kita sediakan format contoh
+   // Ambil ID kategori pertama yang tersedia sebagai default, atau 1 jika kosong
+   const defaultCategoryId = categories.value.length > 0 ? categories.value[0].id : 1;
+   
    const worksheet = XLSX.utils.json_to_sheet([
-      { name: 'Contoh Menu', description: 'Nasi goreng mantap', price: 25000, categoryId: 1, isAvailable: true, isPopular: true },
-      { name: 'Es Teh Manis', description: 'Teh manis dingin', price: 5000, categoryId: 2, isAvailable: true, isPopular: false }
+      { name: 'Contoh Menu', description: 'Nasi goreng mantap', price: 25000, categoryId: Number(defaultCategoryId), isAvailable: true, isPopular: true },
+      { name: 'Es Teh Manis', description: 'Teh manis dingin', price: 5000, categoryId: Number(defaultCategoryId), isAvailable: true, isPopular: false }
    ]);
    const workbook = XLSX.utils.book_new();
    XLSX.utils.book_append_sheet(workbook, worksheet, 'Template_Menu');
