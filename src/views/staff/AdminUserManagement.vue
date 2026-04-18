@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject, onUnmounted } from 'vue';
+import { ref, onMounted, computed, inject, onUnmounted } from 'vue';
 import api from '../../services/api';
 
 const users = ref([]);
@@ -203,9 +203,24 @@ const roleDropdownRef = ref(null);
 const isSubmitting = ref(false);
 const isDeleteModalOpen = ref(false);
 const userToDelete = ref(null);
+const selectedIds = ref([]);
+const isBulkDelete = ref(false);
 const availableRoles = ['SUPERADMIN', 'ADMIN', 'CUSTOMER', 'KASIR', 'KITCHEN', 'DRIVER'];
 
 const staffToast = inject('staffToast');
+
+const allSelected = computed(() => {
+  if (users.value.length === 0) return false;
+  return users.value.every(u => selectedIds.value.includes(u.id));
+});
+
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    selectedIds.value = [];
+  } else {
+    selectedIds.value = users.value.map(u => u.id);
+  }
+};
 
 const form = ref({
    id: null,
@@ -271,19 +286,28 @@ const handleSubmit = async () => {
 };
 
 const confirmDelete = (user) => {
+   isBulkDelete.value = false;
    userToDelete.value = user;
    isDeleteModalOpen.value = true;
 };
 
+const confirmBulkDelete = () => {
+   isBulkDelete.value = true;
+   isDeleteModalOpen.value = true;
+};
+
 const executeDelete = async () => {
-   if (!userToDelete.value) return;
-   
-   const id = userToDelete.value.id;
    isDeleteModalOpen.value = false;
-   
    try {
-      await api.delete(`/users/${id}`);
-      staffToast.value?.display('Akun user telah berhasil dihapus dari sistem.', 'info', 'Operasi Selesai');
+      if (isBulkDelete.value) {
+         await api.post('/users/bulk-delete', { ids: selectedIds.value.map(String) });
+         staffToast.value?.display(`${selectedIds.value.length} user berhasil dihapus.`, 'info', 'Bulk Delete');
+         selectedIds.value = [];
+      } else {
+         if (!userToDelete.value) return;
+         await api.delete(`/users/${userToDelete.value.id}`);
+         staffToast.value?.display('Akun user telah berhasil dihapus dari sistem.', 'info', 'Operasi Selesai');
+      }
       fetchUsers();
    } catch (err) {
       console.error('Delete failed', err);
@@ -348,4 +372,6 @@ onUnmounted(() => {
   opacity: 0;
   transform: translateY(5px) scale(0.98);
 }
+.slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateX(-50%) translateY(30px); }
 </style>
