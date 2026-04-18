@@ -182,6 +182,7 @@ const navItems = computed(() => {
       { name: 'Manajemen User', path: '/staff/admin/users', icon: 'fa-solid fa-users-gear' },
       { name: 'Ulasan Pelanggan', path: '/staff/admin/reviews', icon: 'fa-solid fa-star-half-stroke' },
       { name: 'Promo & Voucher', path: '/staff/admin/promos', icon: 'fa-solid fa-ticket' },
+      { name: 'Integrasi WhatsApp', path: '/staff/admin/whatsapp', icon: 'fa-brands fa-whatsapp' },
       { name: 'Audit & System', path: '/staff/admin/system', icon: 'fa-solid fa-shield-halved' }
     );
   } else if (user?.role === 'KASIR') {

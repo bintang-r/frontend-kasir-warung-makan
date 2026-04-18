@@ -26,6 +26,7 @@ const AdminOrderManagement = () => import('../views/staff/AdminOrderManagement.v
 const AdminPaymentManagement = () => import('../views/staff/AdminPaymentManagement.vue');
 const AdminReviewManagement = () => import('../views/staff/AdminReviewManagement.vue');
 const AdminSystemLogs = () => import('../views/staff/AdminSystemLogs.vue');
+const AdminWhatsappSettings = () => import('../views/staff/AdminWhatsappSettings.vue');
 
 const CashierDashboard = () => import('../views/staff/CashierDashboard.vue');
 const KitchenDashboard = () => import('../views/staff/KitchenDashboard.vue');
@@ -105,6 +106,12 @@ const routes = [
         component: AdminPromoManagement, 
         name: 'AdminPromoManagement', 
         meta: { role: 'ADMIN', title: 'Pusat Manajemen Pemasaran' } 
+      },
+      { 
+        path: 'admin/whatsapp', 
+        component: AdminWhatsappSettings, 
+        name: 'AdminWhatsappSettings', 
+        meta: { role: 'ADMIN', title: 'Integrasi WhatsApp Bot' } 
       },
       { 
         path: 'admin/system', 
