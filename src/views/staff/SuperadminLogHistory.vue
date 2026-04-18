@@ -113,7 +113,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import api from '../../services/api';
-import debounce from 'lodash/debounce';
 
 const logs = ref([]);
 const loading = ref(false);
@@ -138,6 +137,14 @@ const fetchLogs = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const debounce = (fn, delay) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), delay);
+  };
 };
 
 const debouncedFetch = debounce(fetchLogs, 500);
