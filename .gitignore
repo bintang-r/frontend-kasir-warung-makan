@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files (Private & Sensitive)
+.env
+.env.*
+!.env.example
+
+# Custom exclusions
+/public/uploads
+/src/assets/temp
