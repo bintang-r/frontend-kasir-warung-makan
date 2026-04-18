@@ -130,8 +130,14 @@ const getMethodIcon = (method) => {
 };
 
 const formatPrice = (price) => new Intl.NumberFormat('id-ID').format(price);
-const formatDate = (d) => new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(d));
-const formatTime = (d) => new Intl.DateTimeFormat('id-ID', { timeStyle: 'short' }).format(new Date(d));
+const formatDate = (d) => {
+  if (!d) return '-';
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(d));
+};
+const formatTime = (d) => {
+  if (!d) return '-';
+  return new Intl.DateTimeFormat('id-ID', { timeStyle: 'short' }).format(new Date(d));
+};
 
 const exportCSV = () => {
   staffToast.value?.display('Mempersiapkan data laporan keuangan...', 'info', 'Ekspor Data');
