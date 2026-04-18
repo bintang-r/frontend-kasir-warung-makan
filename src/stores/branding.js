@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import api from '../services/api';
+import api, { getImageUrl } from '../services/api';
 
 export const useBrandingStore = defineStore('branding', {
   state: () => ({
@@ -10,12 +10,7 @@ export const useBrandingStore = defineStore('branding', {
   }),
 
   getters: {
-    fullLogoUrl: (state) => {
-      if (!state.logoUrl) return null;
-      if (state.logoUrl.startsWith('http')) return state.logoUrl;
-      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      return `${baseURL}${state.logoUrl}`;
-    }
+    fullLogoUrl: (state) => getImageUrl(state.logoUrl)
   },
 
   actions: {
