@@ -258,8 +258,13 @@ const downloadTemplate = () => {
    const worksheet = XLSX.utils.json_to_sheet([
       { name: 'Contoh User', email: 'contoh@gmail.com', password: 'password123', role: 'KASIR' }
    ]);
+
+   const roleRefs = availableRoles.map(role => ({ 'Gunakan Text Role Ini': role }));
+   const worksheetRoles = XLSX.utils.json_to_sheet(roleRefs);
+
    const workbook = XLSX.utils.book_new();
    XLSX.utils.book_append_sheet(workbook, worksheet, 'Template_User');
+   XLSX.utils.book_append_sheet(workbook, worksheetRoles, 'Referensi_Role');
    XLSX.writeFile(workbook, 'Template_Import_User.xlsx');
 };
 

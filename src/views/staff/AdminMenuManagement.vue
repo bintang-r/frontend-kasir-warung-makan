@@ -286,12 +286,27 @@ const downloadTemplate = () => {
    // Ambil ID kategori pertama yang tersedia sebagai default, atau 1 jika kosong
    const defaultCategoryId = categories.value.length > 0 ? categories.value[0].id : 1;
    
+   // Sheet 1: Template Data Menu
    const worksheet = XLSX.utils.json_to_sheet([
       { name: 'Contoh Menu', description: 'Nasi goreng mantap', price: 25000, categoryId: Number(defaultCategoryId), isAvailable: true, isPopular: true },
       { name: 'Es Teh Manis', description: 'Teh manis dingin', price: 5000, categoryId: Number(defaultCategoryId), isAvailable: true, isPopular: false }
    ]);
+
+   // Sheet 2: Referensi Kategori
+   const categoryRefData = categories.value.map(cat => ({
+      'Gunakan Text ID Ini di Kolom categoryId': Number(cat.id),
+      'Untuk Kategori': cat.name
+   }));
+   if (categoryRefData.length === 0) {
+      categoryRefData.push({ 'Gunakan Text ID Ini di Kolom categoryId': 1, 'Untuk Kategori': 'Belum ada kategori sistem' });
+   }
+   const worksheetRefs = XLSX.utils.json_to_sheet(categoryRefData);
+
+   // Buat Workbook dan gabungkan kedua sheet
    const workbook = XLSX.utils.book_new();
-   XLSX.utils.book_append_sheet(workbook, worksheet, 'Template_Menu');
+   XLSX.utils.book_append_sheet(workbook, worksheet, 'Data_Menu');
+   XLSX.utils.book_append_sheet(workbook, worksheetRefs, 'Referensi_Kategori');
+   
    XLSX.writeFile(workbook, 'Template_Import_Menu.xlsx');
 };
 
