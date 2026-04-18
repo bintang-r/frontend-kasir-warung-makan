@@ -2,7 +2,7 @@
   <div class="space-y-8">
     <div class="flex justify-between items-center bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
        <div>
-          <h2 class="text-2xl font-black text-gray-900 tracking-tight">Manajemen User & Staff</h2>
+          <h2 class="text-2xl font-black text-gray-900 tracking-tight">Manajemen User &amp; Staff</h2>
           <p class="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Kelola akun pelanggan dan akses internal staff</p>
        </div>
        <div class="flex gap-4">
@@ -10,25 +10,14 @@
              <i class="fa-solid fa-users text-primary"></i>
              <span class="text-sm font-black text-gray-900">{{ users.length }} <span class="text-[10px] text-gray-400 uppercase ml-1">Total Entitas</span></span>
           </div>
-
-          <!-- Add Staff Dropdown -->
           <div class="relative" ref="roleDropdownRef">
-             <button 
-               @click="isRoleDropdownOpen = !isRoleDropdownOpen"
-               class="bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-2"
-             >
+             <button @click="isRoleDropdownOpen = !isRoleDropdownOpen" class="bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus"></i> Tambah Staff <i class="fa-solid fa-chevron-down text-[8px]"></i>
              </button>
-             
              <transition name="dropdown">
                 <div v-if="isRoleDropdownOpen" class="absolute top-full right-0 mt-3 w-48 bg-white rounded-3xl shadow-2xl border border-gray-100 py-3 z-[110] overflow-hidden">
-                   <button 
-                      v-for="role in ['SUPERADMIN', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER']" :key="role"
-                      @click="openCreateModal(role)"
-                      class="w-full text-left px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary hover:bg-gray-50 transition-all flex items-center justify-between"
-                   >
-                      {{ role }}
-                      <i class="fa-solid fa-plus opacity-50"></i>
+                   <button v-for="role in ['SUPERADMIN', 'ADMIN', 'KASIR', 'KITCHEN', 'DRIVER']" :key="role" @click="openCreateModal(role)" class="w-full text-left px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary hover:bg-gray-50 transition-all flex items-center justify-between">
+                      {{ role }} <i class="fa-solid fa-plus opacity-50"></i>
                    </button>
                 </div>
              </transition>
@@ -42,6 +31,7 @@
           <table class="w-full text-left">
              <thead>
                 <tr class="border-b border-gray-50">
+                   <th class="pb-6 w-10"><input type="checkbox" class="w-4 h-4 accent-primary rounded" :checked="allSelected" @change="toggleSelectAll" /></th>
                    <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Inisial</th>
                    <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Identitas User</th>
                    <th class="pb-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Email Terdaftar</th>
@@ -51,7 +41,8 @@
                 </tr>
              </thead>
              <tbody class="divide-y divide-gray-50">
-                <tr v-for="user in users" :key="user.id" class="group hover:bg-gray-50/50 transition-colors">
+                <tr v-for="user in users" :key="user.id" class="group hover:bg-gray-50/50 transition-colors" :class="selectedIds.includes(user.id) ? 'bg-primary/5' : ''">
+                   <td class="py-6"><input type="checkbox" class="w-4 h-4 accent-primary rounded" :value="user.id" v-model="selectedIds" /></td>
                    <td class="py-6">
                       <div class="w-10 h-10 rounded-xl bg-gray-100 font-black text-sm flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all">
                          {{ user.name?.charAt(0) }}
@@ -81,6 +72,21 @@
        </div>
     </div>
 
+    <!-- Bulk Action Bar -->
+    <transition name="slide-up">
+      <div v-if="selectedIds.length > 0" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 rounded-[28px] px-8 py-5 flex items-center gap-6 shadow-2xl shadow-gray-900/40 border border-white/10">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-black text-sm">{{ selectedIds.length }}</div>
+          <span class="text-white font-bold text-sm">user dipilih</span>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <button @click="confirmBulkDelete" class="flex items-center gap-2 bg-red-500 hover:bg-red-400 text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95">
+          <i class="fa-solid fa-trash-can"></i> Hapus Terpilih
+        </button>
+        <button @click="selectedIds = []" class="text-gray-400 hover:text-white transition-colors p-2"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </transition>
+
     <!-- Create User Modal -->
     <div v-if="isCreateModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-6">
        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm shadow-2xl" @click="isCreateModalOpen = false"></div>
@@ -93,7 +99,6 @@
                 </div>
                 <button @click="isCreateModalOpen = false" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
              </div>
-
              <form @submit.prevent="handleCreateSubmit" class="space-y-4">
                 <div class="space-y-1.5">
                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
@@ -107,13 +112,8 @@
                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Set Password</label>
                    <input v-model="createForm.password" type="password" required class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-3.5 px-6 text-sm font-bold focus:bg-white focus:border-primary outline-none transition-all" />
                 </div>
-
                 <div class="pt-6">
-                   <button 
-                      type="submit" 
-                      :disabled="isSubmitting"
-                      class="w-full bg-gray-900 text-white py-4.5 rounded-2xl font-black shadow-xl hover:bg-primary transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 uppercase tracking-widest text-xs"
-                   >
+                   <button type="submit" :disabled="isSubmitting" class="w-full bg-gray-900 text-white py-4.5 rounded-2xl font-black shadow-xl hover:bg-primary transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 uppercase tracking-widest text-xs">
                       <div v-if="isSubmitting" class="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>{{ isSubmitting ? 'Mendaftarkan...' : 'Daftarkan Account Staff' }}</span>
                    </button>
@@ -137,29 +137,17 @@
                    <i class="fa-solid fa-xmark"></i>
                 </button>
              </div>
-
              <form @submit.prevent="handleSubmit" class="space-y-8">
                 <div class="space-y-2">
                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pilih Role Baru</label>
                    <div class="grid grid-cols-2 gap-4">
-                      <button 
-                         v-for="role in availableRoles" :key="role"
-                         type="button"
-                         @click="form.role = role"
-                         :class="form.role === role ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 bg-white text-gray-400'"
-                         class="p-4 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all text-center"
-                      >
+                      <button v-for="role in availableRoles" :key="role" type="button" @click="form.role = role" :class="form.role === role ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 bg-white text-gray-400'" class="p-4 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all text-center">
                          {{ role }}
                       </button>
                    </div>
                 </div>
-
                 <div class="pt-6 border-t border-gray-50">
-                   <button 
-                      type="submit" 
-                      :disabled="isSubmitting"
-                      class="w-full bg-gray-900 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-primary transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 active:scale-95 uppercase tracking-widest"
-                   >
+                   <button type="submit" :disabled="isSubmitting" class="w-full bg-gray-900 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-primary transition-all flex justify-center items-center gap-3 disabled:bg-gray-400 active:scale-95 uppercase tracking-widest">
                       <div v-if="isSubmitting" class="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>{{ isSubmitting ? 'Memproses...' : 'Simpan Perubahan Role' }}</span>
                    </button>
@@ -176,10 +164,10 @@
           <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
              <i class="fa-solid fa-user-xmark text-2xl"></i>
           </div>
-          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">Hapus Akun User?</h3>
+          <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-2">{{ isBulkDelete ? `Hapus ${selectedIds.length} User?` : 'Hapus Akun User?' }}</h3>
           <p class="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
-             Apakah Anda yakin ingin menghapus akun <strong>{{ userToDelete?.name }}</strong>? 
-             <span class="block mt-2">Data pribadi user akan hilang, namun riwayat transaksi/pesanan akan tetap tersimpan sebagai anonim untuk pelaporan keuangan.</span>
+             <span v-if="isBulkDelete">Anda akan menghapus <strong>{{ selectedIds.length }} akun user</strong> sekaligus. Riwayat transaksi akan tetap tersimpan sebagai anonim.</span>
+             <span v-else>Apakah Anda yakin ingin menghapus akun <strong>{{ userToDelete?.name }}</strong>? <span class="block mt-2">Data pribadi user akan hilang, namun riwayat transaksi tetap tersimpan sebagai anonim.</span></span>
           </p>
           <div class="flex gap-4">
              <button @click="isDeleteModalOpen = false" class="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-xs uppercase tracking-widest">Batal</button>
@@ -215,32 +203,18 @@ const allSelected = computed(() => {
 });
 
 const toggleSelectAll = () => {
-  if (allSelected.value) {
-    selectedIds.value = [];
-  } else {
-    selectedIds.value = users.value.map(u => u.id);
-  }
+  if (allSelected.value) { selectedIds.value = []; }
+  else { selectedIds.value = users.value.map(u => u.id); }
 };
 
-const form = ref({
-   id: null,
-   role: ''
-});
-
-const createForm = ref({
-   name: '',
-   email: '',
-   password: '',
-   role: ''
-});
+const form = ref({ id: null, role: '' });
+const createForm = ref({ name: '', email: '', password: '', role: '' });
 
 const fetchUsers = async () => {
    try {
       const res = await api.get('/users');
       users.value = res.data;
-   } catch (err) {
-      console.error('Fetch users failed', err);
-   }
+   } catch (err) { console.error('Fetch users failed', err); }
 };
 
 const openModal = (user) => {
@@ -264,25 +238,20 @@ const handleCreateSubmit = async () => {
    } catch (err) {
       console.error('Creation failed', err);
       staffToast.value?.display('Gagal mendaftarkan account baru.', 'error');
-   } finally {
-      isSubmitting.value = false;
-   }
+   } finally { isSubmitting.value = false; }
 };
 
 const handleSubmit = async () => {
    isSubmitting.value = true;
    try {
-      await api.patch(`/users/${form.value.id}`, { role: form.value.role }); 
-      
+      await api.patch(`/users/${form.value.id}`, { role: form.value.role });
       staffToast.value?.display('Otoritas user berhasil diperbarui', 'success', 'Update Role');
       isModalOpen.value = false;
       fetchUsers();
    } catch (err) {
       console.error('Update failed', err);
       staffToast.value?.display('Gagal memperbarui role akses.', 'error');
-   } finally {
-      isSubmitting.value = false;
-   }
+   } finally { isSubmitting.value = false; }
 };
 
 const confirmDelete = (user) => {
@@ -311,10 +280,8 @@ const executeDelete = async () => {
       fetchUsers();
    } catch (err) {
       console.error('Delete failed', err);
-      staffToast.value?.display('Gagal menghapus akun user ini.', 'error');
-   } finally {
-      userToDelete.value = null;
-   }
+      staffToast.value?.display('Gagal menghapus akun user.', 'error');
+   } finally { userToDelete.value = null; }
 };
 
 const getRoleClass = (role) => {
@@ -331,47 +298,23 @@ const getRoleClass = (role) => {
 
 const formatDate = (date) => new Intl.DateTimeFormat('id-ID').format(new Date(date));
 
-// Click outside dropdown
 const handleClickOutside = (event) => {
    if (roleDropdownRef.value && !roleDropdownRef.value.contains(event.target)) {
       isRoleDropdownOpen.value = false;
    }
 };
 
-onMounted(() => {
-   fetchUsers();
-   document.addEventListener('mousedown', handleClickOutside);
-});
-
-onUnmounted(() => {
-   document.removeEventListener('mousedown', handleClickOutside);
-});
+onMounted(() => { fetchUsers(); document.addEventListener('mousedown', handleClickOutside); });
+onUnmounted(() => { document.removeEventListener('mousedown', handleClickOutside); });
 </script>
 
 <style scoped>
-.animate-scale-in {
-  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* Dropdown Animation */
-.dropdown-enter-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.dropdown-leave-active {
-  transition: all 0.2s cubic-bezier(0.7, 0, 0.84, 0);
-}
-.dropdown-enter-from {
-  opacity: 0;
-  transform: translateY(10px) scale(0.95);
-}
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(5px) scale(0.98);
-}
+.animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.dropdown-enter-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.dropdown-leave-active { transition: all 0.2s cubic-bezier(0.7, 0, 0.84, 0); }
+.dropdown-enter-from { opacity: 0; transform: translateY(10px) scale(0.95); }
+.dropdown-leave-to { opacity: 0; transform: translateY(5px) scale(0.98); }
 .slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateX(-50%) translateY(30px); }
 </style>
