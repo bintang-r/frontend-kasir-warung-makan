@@ -12,11 +12,11 @@
 
     <div class="flex items-center gap-4">
       <!-- Notification Icon -->
-      <button @click="notificationStore.toggleDrawer" class="relative p-2 text-gray-400 hover:text-primary transition-colors">
-        <i class="fa-solid fa-bell text-xl transition-transform group-hover:scale-110"></i>
-        <span v-if="notificationStore.unreadCount > 0" class="absolute top-2 right-2 w-4 h-4 bg-primary text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white">
+      <button @click="notificationStore.toggleDrawer" class="relative p-2.5 bg-gray-50 text-gray-800 rounded-2xl hover:bg-gray-100 transition-all border border-gray-100 group">
+        <i class="fa-solid fa-bell text-lg group-hover:scale-110 transition-transform"></i>
+        <div v-if="notificationStore.unreadCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center shadow-lg animate-bounce-subtle border-2 border-white">
           {{ notificationStore.unreadCount > 9 ? '9+' : notificationStore.unreadCount }}
-        </span>
+        </div>
       </button>
 
       <!-- Cart Icon with Badge -->

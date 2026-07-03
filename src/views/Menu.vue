@@ -73,12 +73,14 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../services/api';
 import { useCartStore } from '../stores/cart';
+import { useReservationStore } from '../stores/reservation';
 import MenuCard from '../components/MenuCard.vue';
 import NotificationToast from '../components/NotificationToast.vue';
 
 const route = useRoute();
 const router = useRouter();
 const cartStore = useCartStore();
+const reservationStore = useReservationStore();
 
 const menus = ref([]);
 const categories = ref([]);
@@ -132,8 +134,13 @@ const filteredMenus = computed(() => {
 
 const handleAddToCart = async (menu) => {
   try {
-    await cartStore.addItem(menu.id, 1);
-    toast.value?.display(`Ditambahkan ke keranjang`, 'success');
+    if (reservationStore.isReservationMode) {
+      reservationStore.addItem(menu);
+      toast.value?.display(`Ditambahkan ke reservasi`, 'success');
+    } else {
+      await cartStore.addItem(menu.id, 1);
+      toast.value?.display(`Ditambahkan ke keranjang`, 'success');
+    }
   } catch (error) {
     toast.value?.display('Gagal menambahkan ke keranjang', 'error');
   }

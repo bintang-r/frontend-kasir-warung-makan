@@ -1,0 +1,232 @@
+<template>
+  <div>
+    <!-- The Floating Bar at the bottom (above standard bottom nav) -->
+    <transition name="slide-up">
+      <div v-if="reservationStore.isReservationMode" 
+           class="fixed bottom-[72px] left-0 right-0 z-40 px-4 pointer-events-none"
+      >
+        <div class="bg-gray-900 rounded-2xl shadow-premium p-4 flex items-center justify-between pointer-events-auto">
+          <div class="flex flex-col flex-1" @click="showSlide = true">
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sedang Reservasi</span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-white font-black text-sm line-clamp-1">Meja {{ tableName }}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            </div>
+            <span class="text-primary text-xs font-bold mt-1">{{ reservationStore.totalItems }} Menu Dipilih</span>
+          </div>
+          <div class="flex gap-2">
+            <button @click="cancelReservation" class="w-10 h-10 rounded-xl bg-gray-800 text-gray-400 flex items-center justify-center hover:text-red-400 transition-colors">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <button @click="showSlide = true" class="px-4 h-10 rounded-xl bg-primary text-white text-xs font-black transition-all shadow-md active:scale-95">
+              Bayar
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Slide Carousel / Bottom Sheet for Reservation Menus -->
+    <transition name="fade">
+      <div v-if="showSlide && reservationStore.isReservationMode" class="fixed inset-0 z-[100] flex flex-col justify-end">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="showSlide = false"></div>
+        <div class="bg-white rounded-t-3xl w-full max-h-[85vh] flex flex-col relative z-10 animate-slide-up shadow-up">
+          
+          <!-- Header -->
+          <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-3xl sticky top-0 z-20">
+            <div>
+              <h3 class="text-lg font-black text-gray-900 leading-none">Reservasi Meja {{ tableName }}</h3>
+              <p class="text-xs text-gray-500 font-bold mt-1">{{ formatDateTime(reservationStore.reservationData.date) }} • {{ reservationStore.reservationData.guestCount }} Orang</p>
+            </div>
+            <button @click="showSlide = false" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+            <!-- Selected Menus -->
+            <div v-if="reservationStore.cartItems.length > 0" class="space-y-4">
+              <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Menu Pre-Order</h4>
+              <div v-for="item in reservationStore.cartItems" :key="item.menuId" class="flex gap-4 items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                <img :src="getImageUrl(item.image)" class="w-16 h-16 object-cover rounded-xl shadow-sm bg-gray-100" @error="e => e.target.src='https://placehold.co/100x100?text=No+Image'" />
+                <div class="flex-1">
+                  <h3 class="text-sm font-black text-gray-900 line-clamp-1">{{ item.name }}</h3>
+                  <span class="text-xs font-bold text-primary">{{ formatPrice(item.price) }}</span>
+                </div>
+                <div class="flex items-center gap-3 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 shadow-sm">
+                  <button @click="reservationStore.removeItem(item.menuId)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
+                    <i class="fa-solid fa-minus text-[10px]"></i>
+                  </button>
+                  <span class="text-sm font-black text-gray-900 min-w-[20px] text-center">{{ item.qty }}</span>
+                  <button @click="reservationStore.addItem({id: item.menuId, name: item.name, price: item.price, image: item.image})" class="w-6 h-6 flex items-center justify-center text-primary hover:text-primary-dark transition-colors">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200">
+              <i class="fa-solid fa-utensils text-4xl text-gray-300 mb-3"></i>
+              <p class="text-sm font-bold text-gray-500">Belum ada menu yang dipilih.</p>
+              <p class="text-xs text-gray-400 mt-1">Anda bisa memesan tempat saja, atau tambah menu.</p>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="mt-6 space-y-4">
+              <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Opsi Pembayaran</h4>
+              <div class="grid grid-cols-2 gap-3">
+                <button 
+                  @click="paymentType = 'DP'"
+                  :class="paymentType === 'DP' ? 'bg-primary/10 border-primary shadow-sm' : 'bg-white border-transparent shadow-sm'"
+                  class="p-4 rounded-2xl border-2 transition-all text-left"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-black" :class="paymentType === 'DP' ? 'text-primary' : 'text-gray-900'">Bayar DP 50%</span>
+                    <i v-if="paymentType === 'DP'" class="fa-solid fa-circle-check text-primary"></i>
+                  </div>
+                  <span class="block text-lg font-black text-gray-900">{{ formatPrice(reservationStore.totalPrice / 2) }}</span>
+                </button>
+
+                <button 
+                  @click="paymentType = 'FULL'"
+                  :class="paymentType === 'FULL' ? 'bg-primary/10 border-primary shadow-sm' : 'bg-white border-transparent shadow-sm'"
+                  class="p-4 rounded-2xl border-2 transition-all text-left"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-black" :class="paymentType === 'FULL' ? 'text-primary' : 'text-gray-900'">Bayar Lunas</span>
+                    <i v-if="paymentType === 'FULL'" class="fa-solid fa-circle-check text-primary"></i>
+                  </div>
+                  <span class="block text-lg font-black text-gray-900">{{ formatPrice(reservationStore.totalPrice) }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Action -->
+          <div class="p-6 pb-10 bg-white border-t border-gray-100 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] relative z-20">
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-xs font-black text-gray-500">Total Harus Dibayar</span>
+              <span class="text-xl font-black text-primary">{{ formatPrice(paymentType === 'DP' ? reservationStore.totalPrice / 2 : reservationStore.totalPrice) }}</span>
+            </div>
+            <button 
+              @click="submitReservation"
+              :disabled="loading"
+              class="w-full bg-primary text-white font-black py-4 rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i>
+              <i v-else class="fa-solid fa-check"></i>
+              {{ loading ? 'Memproses...' : 'Konfirmasi & Bayar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useReservationStore } from '../stores/reservation';
+import api, { getImageUrl } from '../services/api';
+import { reservationService } from '../services/reservation.service';
+import { useRouter } from 'vue-router';
+
+const reservationStore = useReservationStore();
+const showSlide = ref(false);
+const loading = ref(false);
+const paymentType = ref('DP');
+const tables = ref([]);
+const router = useRouter();
+
+onMounted(async () => {
+  try {
+    const res = await api.get('/tables');
+    tables.value = res.data;
+  } catch (error) {
+    console.error('Failed to load tables', error);
+  }
+});
+
+const tableName = computed(() => {
+  const t = tables.value.find(x => x.id === reservationStore.reservationData.tableId);
+  return t ? t.name : 'Dipilih';
+});
+
+const cancelReservation = () => {
+  if (confirm('Yakin ingin membatalkan proses reservasi?')) {
+    reservationStore.cancelReservation();
+  }
+};
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price || 0);
+};
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+};
+
+const submitReservation = async () => {
+  loading.value = true;
+  try {
+    const data = reservationStore.reservationData;
+    const payload = {
+      name: data.name,
+      phone: data.phone,
+      date: new Date(data.date).toISOString(),
+      guestCount: data.guestCount,
+      tableId: data.tableId,
+      notes: data.notes,
+      paymentType: paymentType.value,
+      items: reservationStore.cartItems.map(i => ({
+        menuId: i.menuId,
+        qty: i.qty,
+        price: i.price
+      }))
+    };
+    
+    await reservationService.createReservation(payload);
+    
+    alert('Reservasi berhasil dikirim dan menunggu konfirmasi kasir.');
+    showSlide.value = false;
+    reservationStore.cancelReservation();
+    router.push('/history');
+  } catch (error) {
+    console.error(error);
+    alert('Terjadi kesalahan saat memproses reservasi.');
+  } finally {
+    loading.value = false;
+  }
+};
+</script>
+
+<style scoped>
+.slide-up-enter-active, .slide-up-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-up-enter-from, .slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.shadow-up {
+  box-shadow: 0 -10px 40px -10px rgba(0,0,0,0.2);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+</style>

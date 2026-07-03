@@ -54,7 +54,10 @@
               <div class="order-card-inner">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                   <div>
-                    <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff; margin-bottom:4px;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                      <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                      <span v-if="order.reservations?.length" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
+                    </div>
                     <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
                   </div>
                   <i class="fa-solid fa-grip-dots-vertical" style="color:rgba(255,255,255,.15); font-size:14px;"></i>
@@ -101,7 +104,10 @@
               <div class="order-card-inner">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                   <div>
-                    <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff; margin-bottom:4px;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                      <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                      <span v-if="order.reservations?.length" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
+                    </div>
                     <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
                   </div>
                   <i class="fa-solid fa-grip-dots-vertical" style="color:rgba(255,255,255,.15); font-size:14px;"></i>
@@ -147,7 +153,10 @@
               <div class="order-card-inner">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                   <div>
-                    <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff; margin-bottom:4px;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                      <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
+                      <span v-if="order.reservations?.length" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
+                    </div>
                     <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
                   </div>
                   <i class="fa-solid fa-grip-dots-vertical" style="color:rgba(255,255,255,.15); font-size:14px;"></i>

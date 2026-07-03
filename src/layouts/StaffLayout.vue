@@ -76,6 +76,16 @@
                    </div>
                    
                    <div class="px-3 space-y-1">
+                      <router-link
+                        v-if="isAdmin"
+                        to="/staff/reservations"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm"
+                        :class="route.name === 'AdminReservationManagement' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm'"
+                      >
+                        <div class="w-6 text-center"><i class="fa-solid fa-calendar-check text-lg"></i></div>
+                        <span>Reservasi</span>
+                      </router-link>
+
                       <router-link 
                         @click="closeProfileDropdown"
                         to="/staff/profile" 
@@ -186,6 +196,7 @@ const navItems = computed(() => {
       { name: 'Riwayat Transaksi', path: '/staff/admin/payments', icon: 'fa-solid fa-file-invoice-dollar' },
       { name: 'Kelola Menu', path: '/staff/admin/menus', icon: 'fa-solid fa-utensils' },
       { name: 'Kategori & Meja', path: '/staff/admin/infrastructure', icon: 'fa-solid fa-layer-group' },
+      { name: 'Reservasi', path: '/staff/reservations', icon: 'fa-solid fa-calendar-check' },
       { name: 'Manajemen User', path: '/staff/admin/users', icon: 'fa-solid fa-users-gear' },
       { name: 'Ulasan Pelanggan', path: '/staff/admin/reviews', icon: 'fa-solid fa-star-half-stroke' },
       { name: 'Promo & Voucher', path: '/staff/admin/promos', icon: 'fa-solid fa-ticket' },

@@ -17,10 +17,10 @@
           </div>
         </div>
 
-      <!-- "Semua Tagihan" — Fixed, never scrolls -->
-      <div class="flex items-center px-3 border-r border-gray-100 flex-shrink-0">
+      <!-- "Semua Tagihan" & "Reservasi" — Fixed, never scrolls -->
+      <div v-if="route.path !== '/staff/cashier/pos'" class="flex items-center px-3 border-r border-gray-100 flex-shrink-0 gap-2">
         <button
-          @click="selectedOrderId = null; searchQuery = ''"
+          @click="$router.push('/staff/cashier'); selectedOrderId = null; searchQuery = ''"
           class="flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
           :class="selectedOrderId === null
             ? 'bg-gray-900 text-white shadow-md'
@@ -32,10 +32,21 @@
             {{ pendingCount }}
           </span>
         </button>
+
+        <button
+          @click="$router.push('/staff/cashier/reservations'); selectedOrderId = null; searchQuery = ''"
+          class="flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
+          :class="route.path === '/staff/cashier/reservations'
+            ? 'bg-gray-900 text-white shadow-md'
+            : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
+        >
+          <i class="fa-solid fa-calendar-check mr-1.5"></i>
+          Reservasi
+        </button>
       </div>
 
       <!-- Scrollable customer tabs -->
-      <div class="flex-1 flex items-center overflow-x-auto scrollbar-hide px-3 gap-2 min-w-0">
+      <div v-if="route.path === '/staff/cashier'" class="flex-1 flex items-center overflow-x-auto scrollbar-hide px-3 gap-2 min-w-0">
         <button
           v-for="order in visibleTabs"
           :key="order.id"
@@ -50,9 +61,9 @@
             class="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black flex-shrink-0"
             :class="selectedOrderId === order.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'"
           >
-            {{ (order.user?.name || 'G').charAt(0).toUpperCase() }}
+            {{ (order.address || order.user?.name || 'G').charAt(0).toUpperCase() }}
           </div>
-          <span>{{ (order.user?.name || 'Guest').split(' ')[0] }}</span>
+          <span>{{ (order.address || order.user?.name || 'Guest').split(' ')[0] }}</span>
           <span class="opacity-50 font-bold">·</span>
           <span class="opacity-50 font-bold">#{{ order.id }}</span>
           <!-- unpaid badge -->
@@ -78,11 +89,14 @@
         </div>
       </div>
 
+      <!-- Spacer when middle is hidden -->
+      <div v-if="route.path === '/staff/cashier/pos'" class="flex-1"></div>
+
       <!-- Search + Date + Profile -->
       <div class="flex items-center gap-3 px-4 border-l border-gray-100 flex-shrink-0">
 
         <!-- Search -->
-        <div class="relative">
+        <div v-if="route.path !== '/staff/cashier/pos'" class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px]"></i>
           <input
             v-model="searchQuery"
@@ -165,7 +179,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, provide } from 'vue';
 import { useAuthStore } from '../stores/auth';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useBrandingStore } from '../stores/branding';
 import api from '../services/api';
 import NotificationToast from '../components/NotificationToast.vue';
@@ -173,6 +187,7 @@ import NotificationToast from '../components/NotificationToast.vue';
 const brandingStore = useBrandingStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const user = authStore.user;
 
 const dropdownOpen = ref(false);
@@ -212,7 +227,7 @@ const filteredOrders = computed(() => {
   if (!searchQuery.value.trim()) return allBillingOrders.value;
   const q = searchQuery.value.toLowerCase();
   return allBillingOrders.value.filter(o =>
-    (o.user?.name || '').toLowerCase().includes(q) ||
+    (o.address || o.user?.name || '').toLowerCase().includes(q) ||
     String(o.id).includes(q)
   );
 });

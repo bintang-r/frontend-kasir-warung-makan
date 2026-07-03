@@ -8,6 +8,7 @@ import CartDrawer from './components/CartDrawer.vue'
 import NotificationDrawer from './components/NotificationDrawer.vue'
 import BottomNav from './components/BottomNav.vue'
 import TopBar from './components/TopBar.vue'
+import GlobalReservationBar from './components/GlobalReservationBar.vue'
 
 const cartStore = useCartStore()
 const notificationStore = useNotificationStore()
@@ -55,10 +56,12 @@ onMounted(() => {
       
       <template v-if="!isFlexibleRoute">
         <BottomNav v-if="!hideCustomerUI" />
-        <CartDrawer />
-        <NotificationDrawer />
-
       </template>
+
+      <!-- Modals & Drawers -->
+      <CartDrawer />
+      <NotificationDrawer />
+      <GlobalReservationBar />
     </div>
   </div>
 </template>

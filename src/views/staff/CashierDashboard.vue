@@ -1,7 +1,7 @@
 <template>
-  <div class="cashier-app" style="height: calc(100vh - 64px); overflow: hidden">
+  <div class="cashier-app" :style="selectedOrderId ? 'height: calc(100vh - 64px); overflow: hidden' : 'min-height: calc(100vh - 64px)'">
     <!-- ===== SEMUA TAGIHAN VIEW ===== -->
-    <div v-if="!selectedOrderId" class="h-full flex flex-col p-6 gap-6">
+    <div v-if="!selectedOrderId" class="p-6 gap-6 flex flex-col">
       <!-- Summary Stats -->
       <div class="grid grid-cols-4 gap-4 flex-shrink-0">
         <div class="stat-card bg-white">
@@ -36,30 +36,63 @@
 
       <!-- Orders List Table -->
       <div
-        class="bg-white rounded-3xl border border-gray-100 shadow-sm flex-1 overflow-hidden flex flex-col"
+        class="bg-white rounded-3xl border border-gray-100 shadow-sm"
       >
         <div
           class="flex items-center justify-between px-8 py-6 border-b border-gray-50"
         >
           <div>
             <h2 class="text-lg font-black text-gray-900">Antrian Pembayaran</h2>
-            <p
-              class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5"
-            >
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
               Klik baris untuk buka kasir
             </p>
           </div>
-          <button
-            @click="$emit('refresh')"
-            class="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-primary hover:bg-primary/5 transition-all border border-gray-100"
-          >
-            <i class="fa-solid fa-arrows-rotate text-sm"></i>
-          </button>
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+              <!-- Tabs Filter -->
+              <div class="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+                <button 
+                  @click="sourceFilter = 'ALL'"
+                  class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                  :class="sourceFilter === 'ALL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                >Semua Tagihan</button>
+                <button 
+                  @click="sourceFilter = 'KASIR'"
+                  class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                  :class="sourceFilter === 'KASIR' ? 'bg-primary/10 text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                >Order Kasir</button>
+                <button 
+                  @click="sourceFilter = 'APP'"
+                  class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                  :class="sourceFilter === 'APP' ? 'bg-blue-50 text-blue-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                >Order Luar (App)</button>
+              </div>
+
+              <!-- Search Pelanggan Local -->
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px]"></i>
+                <input
+                  v-model="localSearch"
+                  type="text"
+                  placeholder="Cari pelanggan..."
+                  class="bg-gray-50 border border-gray-150 rounded-xl pl-8 pr-3 py-2 text-[10px] font-bold outline-none focus:border-primary/50 focus:bg-white transition-all w-48"
+                />
+              </div>
+
+              <div class="w-px h-6 bg-gray-200"></div>
+              <button
+                @click="$emit('refresh')"
+                class="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-primary hover:bg-primary/5 transition-all border border-gray-100"
+              >
+                <i class="fa-solid fa-arrows-rotate text-sm"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto">
-          <table class="w-full text-left">
-            <thead class="sticky top-0 bg-gray-50 z-10">
+        <div class="w-full overflow-x-auto">
+          <table class="w-full text-left whitespace-nowrap min-w-[800px]">
+            <thead class="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th
                   class="px-8 py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest"
@@ -76,19 +109,13 @@
                 >
                   Meja / Tipe
                 </th>
-                <th
-                  class="py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest"
-                >
+                <th class="py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
                   Items
                 </th>
-                <th
-                  class="py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest"
-                >
-                  Total
+                <th class="py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                  Dapur
                 </th>
-                <th
-                  class="py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest"
-                >
+                <th class="py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
                   Status
                 </th>
                 <th
@@ -100,26 +127,35 @@
             </thead>
             <tbody class="divide-y divide-gray-50">
               <tr
-                v-for="order in props.orders"
+                v-for="order in paginatedOrders"
                 :key="order.id"
                 @click="$emit('select-order', order.id)"
                 class="group hover:bg-gray-50/70 transition-all cursor-pointer"
               >
                 <td class="px-8 py-5">
-                  <span class="font-black text-gray-900 text-sm tabular-nums"
-                    >#{{ order.id }}</span
-                  >
+                  <div class="flex flex-col gap-1 items-start">
+                    <span class="font-black text-gray-900 text-sm tabular-nums"
+                      >#{{ order.id }}</span
+                    >
+                    <span v-if="order.reservations?.length" class="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">
+                      Reservasi
+                    </span>
+                  </div>
                 </td>
                 <td class="py-5">
                   <div class="flex items-center gap-3">
                     <div
                       class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center font-black text-xs text-gray-500"
                     >
-                      {{ (order.user?.name || "G").charAt(0).toUpperCase() }}
+                      {{ (order.address || order.user?.name || "G").charAt(0).toUpperCase() }}
                     </div>
                     <div>
-                      <p class="font-black text-gray-900 text-xs">
-                        {{ order.user?.name || "Guest" }}
+                      <p class="font-black text-gray-900 text-xs flex items-center gap-2">
+                        {{ order.address || order.user?.name || "Guest" }}
+                        <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest"
+                              :class="order.user?.id === authStore.user?.id ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-500'">
+                          {{ order.user?.id === authStore.user?.id ? 'Kasir' : 'App' }}
+                        </span>
                       </p>
                       <p class="text-[9px] text-gray-400 font-bold mt-0.5">
                         {{ formatTime(order.createdAt) }}
@@ -133,14 +169,16 @@
                   }}</span>
                 </td>
                 <td class="py-5">
-                  <span class="text-xs font-bold text-gray-600"
-                    >{{ order.items?.length }} item</span
-                  >
+                  <span class="text-xs font-bold text-gray-600">{{ order.items?.length }} item</span>
                 </td>
                 <td class="py-5">
-                  <span class="font-black text-gray-900 text-sm"
-                    >Rp {{ formatPrice(order.totalPrice) }}</span
+                  <span
+                    class="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap inline-flex items-center gap-1.5"
+                    :class="getKitchenStatusStyle(order.status).bg + ' ' + getKitchenStatusStyle(order.status).text"
                   >
+                    <i :class="getKitchenStatusStyle(order.status).icon"></i>
+                    {{ getKitchenStatusStyle(order.status).label }}
+                  </span>
                 </td>
                 <td class="py-5">
                   <span
@@ -169,7 +207,7 @@
                   >
                 </td>
               </tr>
-              <tr v-if="props.orders.length === 0">
+              <tr v-if="paginatedOrders.length === 0">
                 <td colspan="7" class="py-24 text-center">
                   <div class="flex flex-col items-center opacity-20">
                     <i
@@ -185,6 +223,43 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="px-8 py-4 border-t border-gray-50 flex items-center justify-between bg-white">
+          <div class="flex items-center gap-4">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              Total: {{ displayOrders.length }} data
+            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tampilkan:</span>
+              <select v-model="itemsPerPage" class="bg-gray-50 border border-gray-150 rounded-lg px-2 py-1 text-[10px] font-bold text-gray-700 outline-none focus:border-primary">
+                <option :value="10">10</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button 
+              @click="currentPage > 1 && currentPage--" 
+              :disabled="currentPage === 1"
+              class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+              :class="currentPage === 1 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-gray-600 bg-gray-100 hover:bg-gray-200'"
+            >Prev</button>
+            
+            <div class="flex items-center gap-1">
+              <span class="text-[10px] font-black text-gray-900 mx-2">Halaman {{ currentPage }} dari {{ totalPages || 1 }}</span>
+            </div>
+            
+            <button 
+              @click="currentPage < totalPages && currentPage++" 
+              :disabled="currentPage >= totalPages"
+              class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+              :class="currentPage >= totalPages ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-gray-600 bg-gray-100 hover:bg-gray-200'"
+            >Next</button>
+          </div>
         </div>
       </div>
     </div>
@@ -209,8 +284,21 @@
             <h2 class="text-2xl font-black text-gray-900 leading-none">
               Order <span class="text-primary">#{{ currentOrder.id }}</span>
             </h2>
-            <p class="text-xs text-gray-400 font-bold mt-1.5">
-              {{ currentOrder.user?.name || "Guest" }}
+            <div class="flex items-center gap-2 mt-2">
+              <span
+                class="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1.5"
+                :class="getKitchenStatusStyle(currentOrder.status).bg + ' ' + getKitchenStatusStyle(currentOrder.status).text"
+              >
+                <i :class="getKitchenStatusStyle(currentOrder.status).icon"></i>
+                {{ getKitchenStatusStyle(currentOrder.status).label }}
+              </span>
+            </div>
+            <p class="text-xs text-gray-400 font-bold mt-2 flex items-center gap-2">
+              {{ currentOrder.address || currentOrder.user?.name || "Guest" }}
+              <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest"
+                    :class="currentOrder.user?.id === authStore.user?.id ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-500'">
+                {{ currentOrder.user?.id === authStore.user?.id ? 'Kasir' : 'App' }}
+              </span>
               <span class="mx-2 text-gray-200">·</span>
               {{ currentOrder.table?.name || currentOrder.orderType }}
               <span class="mx-2 text-gray-200">·</span>
@@ -429,7 +517,7 @@
             </h3>
             <p class="text-white/30 text-[10px] font-bold mt-2">
               Order #{{ currentOrder.id }} ·
-              {{ currentOrder.user?.name || "Guest" }}
+              {{ currentOrder.address || currentOrder.user?.name || "Guest" }}
             </p>
           </div>
 
@@ -636,6 +724,10 @@
               Meja:
               {{ lastOrderSnapshot.table?.name || lastOrderSnapshot.orderType }}
             </p>
+            <p>
+              Pelanggan:
+              {{ lastOrderSnapshot.address || lastOrderSnapshot.user?.name || "Guest" }}
+            </p>
           </div>
 
           <div
@@ -733,6 +825,10 @@
           <span>Kasir</span>
           <span>{{ authStore.user?.name || "Staff" }}</span>
         </div>
+        <div class="row">
+          <span>Pelanggan</span>
+          <span>{{ lastOrderSnapshot.address || lastOrderSnapshot.user?.name || "Guest" }}</span>
+        </div>
 
         <div class="divider">--------------------------------</div>
 
@@ -790,6 +886,15 @@
   </div>
 
   <NotificationToast ref="toast" />
+
+  <!-- Floating Action Button for POS -->
+  <router-link 
+    to="/staff/cashier/pos"
+    class="fixed bottom-8 right-8 w-16 h-16 bg-primary text-white rounded-2xl shadow-[0_10px_25px_-5px_rgba(227,30,36,0.4)] flex flex-col items-center justify-center hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all z-40 border-2 border-white"
+  >
+    <i class="fa-solid fa-plus text-xl mb-0.5"></i>
+    <span class="text-[8px] font-black uppercase tracking-widest">Order</span>
+  </router-link>
 </template>
 
 <script setup>
@@ -797,19 +902,68 @@ import api from "../../services/api";
 import { getImageUrl } from "../../services/api";
 import { useAuthStore } from "../../stores/auth";
 import NotificationToast from "../../components/NotificationToast.vue";
-import { ref, computed, inject, nextTick } from "vue";
-import printJS from "print-js"; // ✅ TAMBAHKAN INI
+import { ref, computed, inject, nextTick, watch } from "vue";
+import printJS from "print-js";
 
 const authStore = useAuthStore();
 
 const props = defineProps({
-  selectedOrderId: { default: null },
-  orders: { type: Array, default: () => [] },
+  selectedOrderId: {
+    type: [Number, String],
+    default: null,
+  },
+  orders: {
+    type: Array,
+    default: () => [],
+  },
+  searchQuery: {
+    type: String,
+    default: "",
+  },
 });
 
 const emit = defineEmits(["refresh", "select-order"]);
 const toast = ref(null);
 const cashierToast = inject("cashierToast", null);
+
+const sourceFilter = ref('ALL');
+const localSearch = ref('');
+
+const displayOrders = computed(() => {
+  let result = props.orders || [];
+
+  if (sourceFilter.value === 'KASIR') {
+    result = result.filter(o => o.user?.id === authStore.user?.id);
+  } else if (sourceFilter.value === 'APP') {
+    result = result.filter(o => o.user?.id !== authStore.user?.id);
+  }
+
+  if (localSearch.value.trim()) {
+    const q = localSearch.value.toLowerCase();
+    result = result.filter(o => 
+      (o.address || o.user?.name || '').toLowerCase().includes(q) ||
+      String(o.id).includes(q)
+    );
+  }
+
+  return result;
+});
+
+// Pagination state
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
+const totalPages = computed(() => Math.ceil(displayOrders.value.length / itemsPerPage.value));
+
+const paginatedOrders = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return displayOrders.value.slice(start, end);
+});
+
+watch([sourceFilter, localSearch, itemsPerPage], () => {
+  currentPage.value = 1; // Reset to page 1 when filters or items per page change
+});
 
 const isProcessing = ref(false);
 const selectedMethod = ref("CASH");
@@ -1041,6 +1195,18 @@ const formatTime = (ds) =>
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(ds));
+
+const getKitchenStatusStyle = (status) => {
+  switch (status) {
+    case 'PENDING': return { label: 'Menunggu', bg: 'bg-yellow-100', text: 'text-yellow-600', icon: 'fa-regular fa-clock' };
+    case 'CONFIRMED': return { label: 'Diterima', bg: 'bg-blue-100', text: 'text-blue-600', icon: 'fa-solid fa-clipboard-check' };
+    case 'COOKING': return { label: 'Dimasak', bg: 'bg-orange-100', text: 'text-orange-600', icon: 'fa-solid fa-fire-burner' };
+    case 'READY': return { label: 'Siap', bg: 'bg-emerald-100', text: 'text-emerald-600', icon: 'fa-solid fa-bell-concierge' };
+    case 'COMPLETED': return { label: 'Selesai', bg: 'bg-gray-100', text: 'text-gray-600', icon: 'fa-solid fa-check-double' };
+    case 'CANCELLED': return { label: 'Batal', bg: 'bg-red-100', text: 'text-red-600', icon: 'fa-solid fa-xmark' };
+    default: return { label: status || 'Unknown', bg: 'bg-gray-100', text: 'text-gray-600', icon: 'fa-solid fa-circle-question' };
+  }
+};
 </script>
 
 <style scoped>

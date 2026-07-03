@@ -87,9 +87,34 @@
       </div>
     </div>
 
+    <!-- Prominent Reservation Card -->
+    <div class="px-6 mt-6">
+      <div class="bg-gradient-to-br from-primary to-primary-hover rounded-3xl p-6 shadow-lg shadow-primary/30 relative overflow-hidden flex flex-col justify-between items-start text-white">
+        <!-- Background Decoration -->
+        <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+        <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
+        
+        <div class="relative z-10 w-full flex justify-between items-center mb-4">
+          <div class="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></div>
+            <span class="text-[9px] font-black uppercase tracking-widest text-white">Open Booking</span>
+          </div>
+          <i class="fa-solid fa-chair text-3xl opacity-20"></i>
+        </div>
 
+        <div class="relative z-10 mb-4">
+          <h3 class="font-black text-2xl leading-tight">Reservasi<br/>Tempat Duduk</h3>
+          <p class="text-white/80 text-xs mt-2 font-medium max-w-[200px]">Pesan meja untuk keluarga atau acara khusus Anda sekarang juga.</p>
+        </div>
 
-    <!-- Category Section -->
+        <button 
+          @click="isReservationModalOpen = true"
+          class="relative z-10 bg-white text-primary w-full py-3.5 rounded-2xl text-sm font-black flex justify-center items-center gap-2 hover:bg-gray-50 active:scale-[0.98] transition-all shadow-md"
+        >
+          <i class="fa-solid fa-calendar-plus"></i> Mulai Reservasi
+        </button>
+      </div>
+    </div>    <!-- Category Section -->
     <div class="mt-10">
       <div class="px-6 flex justify-between items-end mb-4">
         <h2 class="text-xl font-bold text-gray-900">Kategori Menu</h2>
@@ -134,23 +159,34 @@
       </div>
     </div>
 
-    <!-- Local Info Card -->
+    <!-- Local Info Card (Minimal) -->
     <div class="px-6 mt-10">
-      <div class="bg-white rounded-3xl p-6 shadow-card border border-gray-100 overflow-hidden relative">
-        <h3 class="font-black text-gray-900 text-lg leading-tight">Makan Kenyang,<br/>Hati Senang!</h3>
-        <p class="text-gray-500 text-xs mt-2 max-w-[160px]">Layanan dine-in kami menggunakan sistem pembayaran digital yang aman dan cepat.</p>
-        <div class="mt-4 flex gap-4">
+      <div class="bg-white rounded-3xl p-6 shadow-card border border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+           <div class="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center text-xl">
+             <i class="fa-solid fa-store"></i>
+           </div>
            <div class="flex flex-col">
-             <span class="text-[10px] font-black uppercase text-gray-300">Operational</span>
-             <span class="text-xs font-bold text-accent">OPEN NOW</span>
+             <span class="text-[10px] font-black uppercase text-gray-400">Siantar Minang</span>
+             <span class="text-sm font-bold text-gray-900">Buka 09:00 - 22:00</span>
            </div>
-           <div class="flex flex-col border-l border-gray-100 pl-4">
-             <span class="text-[10px] font-black uppercase text-gray-300">Rating</span>
-             <span class="text-xs font-bold text-gray-700"><i class="fa-solid fa-star text-yellow-400 text-[10px] mr-1"></i> 4.9 (2k+)</span>
-           </div>
+        </div>
+        <div class="flex flex-col items-end">
+           <span class="text-[10px] font-black uppercase text-gray-400">Rating</span>
+           <span class="text-sm font-bold text-gray-900 flex items-center gap-1">
+             <i class="fa-solid fa-star text-yellow-400 text-xs"></i> 4.9
+           </span>
         </div>
       </div>
     </div>
+
+    <!-- Reservation Modal -->
+    <CustomerReservationModal 
+      :isOpen="isReservationModalOpen" 
+      @close="isReservationModalOpen = false" 
+      @success="handleReservationStarted"
+    />
+
   </div>
 </template>
 
@@ -160,7 +196,9 @@ import api, { getImageUrl } from '../services/api';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useCartStore } from '../stores/cart';
+import { useReservationStore } from '../stores/reservation';
 import MenuCard from '../components/MenuCard.vue';
+import CustomerReservationModal from '../components/CustomerReservationModal.vue';
 
 const categories = ref([]);
 const popularMenus = ref([]);
@@ -169,7 +207,9 @@ const isLoading = ref(true);
 const router = useRouter();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const reservationStore = useReservationStore();
 const activeOrder = ref(null);
+const isReservationModalOpen = ref(false);
 
 // Carousel Logic
 const currentPromoIndex = ref(0);
@@ -211,7 +251,16 @@ const handleTouchEnd = () => {
 };
 
 const handleAddToCart = (item) => {
-  cartStore.addItem(item.id);
+  if (reservationStore.isReservationMode) {
+    reservationStore.addItem(item);
+  } else {
+    cartStore.addItem(item.id);
+  }
+};
+
+const handleReservationStarted = () => {
+  // Modal automatically sets isReservationMode to true in store
+  isReservationModalOpen.value = false;
 };
 
 onMounted(async () => {

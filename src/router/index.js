@@ -26,13 +26,16 @@ const AdminBranding = () => import('../views/staff/AdminBranding.vue');
 const AdminOrderManagement = () => import('../views/staff/AdminOrderManagement.vue');
 const AdminPaymentManagement = () => import('../views/staff/AdminPaymentManagement.vue');
 const AdminReviewManagement = () => import('../views/staff/AdminReviewManagement.vue');
+const AdminReservationManagement = () => import('../views/staff/AdminReservationManagement.vue');
 const SuperadminLogHistory = () => import('../views/staff/SuperadminLogHistory.vue');
 const AdminWhatsappSettings = () => import('../views/staff/AdminWhatsappSettings.vue');
 
 const CashierDashboard = () => import('../views/staff/CashierDashboard.vue');
+const CashierPOS = () => import('../views/staff/CashierPOS.vue');
 const KitchenDashboard = () => import('../views/staff/KitchenDashboard.vue');
 const KitchenLayout = () => import('../layouts/KitchenLayout.vue');
 const CashierLayout = () => import('../layouts/CashierLayout.vue');
+const CashierReservation = () => import('../views/staff/CashierReservation.vue');
 
 const routes = [
   { path: '/', component: Home, name: 'Home' },
@@ -59,6 +62,11 @@ const routes = [
         component: StaffProfile, 
         name: 'StaffProfile', 
         meta: { title: 'Profil Saya' } 
+      },
+      { 
+        path: 'reservations', 
+        component: AdminReservationManagement, 
+        name: 'AdminReservationManagement' 
       },
       { 
         path: 'admin', 
@@ -141,6 +149,18 @@ const routes = [
         name: 'CashierDashboard',
         meta: { role: 'KASIR', title: 'Panel Verifikasi Kasir' }
       },
+      {
+        path: 'cashier/pos',
+        component: CashierPOS,
+        name: 'CashierPOS',
+        meta: { role: 'KASIR', title: 'Sistem Kasir POS' }
+      },
+      {
+        path: 'cashier/reservations',
+        component: CashierReservation,
+        name: 'CashierReservation',
+        meta: { role: 'KASIR', title: 'Manajemen Reservasi' }
+      }
     ]
   },
 
