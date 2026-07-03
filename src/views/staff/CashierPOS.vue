@@ -433,6 +433,8 @@ import { useOrderStore } from '../../stores/order';
 import { useAuthStore } from '../../stores/auth';
 import printJS from 'print-js';
 
+const fetchPendingReservations = inject('fetchPendingReservations', () => {});
+
 const router = useRouter();
 const authStore = useAuthStore();
 const orderStore = useOrderStore();
@@ -638,6 +640,9 @@ const submitOrder = async (payDirectly = false) => {
       
       const response = await api.post('/reservations', resPayload);
       
+      // Update layouts badge immediately
+      fetchPendingReservations();
+
       // Since it creates reservation + order, we need to fetch the newly created order
       // We can get it from the reservation's orderId
       if (response.data.orderId) {
