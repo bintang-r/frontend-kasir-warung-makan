@@ -202,7 +202,6 @@ const cashierToast = ref(null);
 const pendingReservationsCount = ref(0);
 provide('cashierToast', cashierToast);
 provide('pendingReservationsCount', pendingReservationsCount);
-provide('fetchPendingReservations', fetchPendingReservations);
 
 // Current clock
 const now = ref(new Date());
@@ -264,6 +263,7 @@ const fetchPendingReservations = async () => {
     console.error('Cashier fetch reservations error', e);
   }
 };
+provide('fetchPendingReservations', fetchPendingReservations);
 
 const handleLogout = () => {
   authStore.logout();
