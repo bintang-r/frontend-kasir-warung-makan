@@ -113,11 +113,12 @@
               <div class="flex gap-2">
                 <button @click="orderType = 'DINE_IN'" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2" :class="orderType === 'DINE_IN' ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'">Makan Sini</button>
                 <button @click="orderType = 'TAKEAWAY'" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2" :class="orderType === 'TAKEAWAY' ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'">Bungkus</button>
+                <button @click="orderType = 'RESERVATION'" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2" :class="orderType === 'RESERVATION' ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'">Reservasi</button>
               </div>
             </div>
             
-            <!-- Table Input (if Dine in) -->
-            <div v-if="orderType === 'DINE_IN'" class="animate-in fade-in slide-in-from-top-2 mb-4">
+            <!-- Table Input (if Dine in or Reservation) -->
+            <div v-if="['DINE_IN', 'RESERVATION'].includes(orderType)" class="animate-in fade-in slide-in-from-top-2 mb-4">
                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                  <i class="fa-solid fa-chair"></i> Pilih Meja
                </p>
@@ -127,13 +128,13 @@
                </select>
             </div>
 
-            <!-- Link to Reservation (Optional) -->
-            <div>
+            <!-- Link to Reservation (if Reservation Type) -->
+            <div v-if="orderType === 'RESERVATION'" class="animate-in fade-in slide-in-from-top-2 mb-4">
                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                 <i class="fa-regular fa-calendar-check"></i> Tautkan ke Reservasi (Opsional)
+                 <i class="fa-regular fa-calendar-check"></i> Pilih Reservasi
                </p>
                <select v-model="selectedReservationId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5">
-                  <option :value="null">-- Tidak ditautkan --</option>
+                  <option :value="null">-- Pilih Reservasi --</option>
                   <option v-for="r in approvedReservations" :key="r.id" :value="r.id">
                     {{ new Date(r.date).toLocaleDateString('id-ID') }} - {{ r.name }} ({{ r.guestCount }} org)
                   </option>
@@ -523,9 +524,14 @@ const quickCashOptions = computed(() => {
 
 const submitOrder = async (payDirectly = false) => {
   if (localCart.value.length === 0) return;
-  if (orderType.value === 'DINE_IN' && !selectedTableId.value) {
+  if (['DINE_IN', 'RESERVATION'].includes(orderType.value) && !selectedTableId.value) {
     if (cashierToast?.value) cashierToast.value.display('Pilih meja terlebih dahulu', 'error');
     else alert('Pilih meja terlebih dahulu');
+    return;
+  }
+  if (orderType.value === 'RESERVATION' && !selectedReservationId.value) {
+    if (cashierToast?.value) cashierToast.value.display('Pilih reservasi terlebih dahulu', 'error');
+    else alert('Pilih reservasi terlebih dahulu');
     return;
   }
   if (!customerNotes.value.trim()) {
@@ -558,12 +564,14 @@ const submitOrder = async (payDirectly = false) => {
     const cartId = newCartRes.data.id;
     
     // 4. Place Order (customerNotes is stored in address field for now so it shows up)
+    const backendOrderType = orderType.value === 'RESERVATION' ? 'DINE_IN' : orderType.value;
+    
     const newOrder = await orderStore.placeOrder(
       cartId.toString(),
-      orderType.value,
+      backendOrderType,
       customerNotes.value, 
-      selectedTableId.value,
-      selectedReservationId.value
+      ['DINE_IN', 'RESERVATION'].includes(orderType.value) ? selectedTableId.value : undefined,
+      orderType.value === 'RESERVATION' ? selectedReservationId.value : undefined
     );
     
     if (payDirectly) {
