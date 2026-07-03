@@ -117,13 +117,26 @@
             </div>
             
             <!-- Table Input (if Dine in) -->
-            <div v-if="orderType === 'DINE_IN'" class="animate-in fade-in slide-in-from-top-2">
+            <div v-if="orderType === 'DINE_IN'" class="animate-in fade-in slide-in-from-top-2 mb-4">
                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                  <i class="fa-solid fa-chair"></i> Pilih Meja
                </p>
                <select v-model="selectedTableId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5">
                   <option :value="null">Pilih Meja...</option>
                   <option v-for="t in tables" :key="t.id" :value="t.id">{{ t.name }}</option>
+               </select>
+            </div>
+
+            <!-- Link to Reservation (Optional) -->
+            <div>
+               <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                 <i class="fa-regular fa-calendar-check"></i> Tautkan ke Reservasi (Opsional)
+               </p>
+               <select v-model="selectedReservationId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5">
+                  <option :value="null">-- Tidak ditautkan --</option>
+                  <option v-for="r in approvedReservations" :key="r.id" :value="r.id">
+                    {{ new Date(r.date).toLocaleDateString('id-ID') }} - {{ r.name }} ({{ r.guestCount }} org)
+                  </option>
                </select>
             </div>
           </div>
@@ -399,12 +412,14 @@ const cashierToast = inject('cashierToast', ref(null));
 const menus = ref([]);
 const categories = ref([]);
 const tables = ref([]);
+const approvedReservations = ref([]);
 const isLoading = ref(true);
 
 const selectedCategory = ref(null);
 const orderType = ref('DINE_IN');
 const selectedTableId = ref(null);
 const customerNotes = ref('');
+const selectedReservationId = ref(null);
 
 const localCart = ref([]);
 const isSubmitting = ref(false);
@@ -414,14 +429,20 @@ const formatPrice = (price) => new Intl.NumberFormat('id-ID').format(price || 0)
 const fetchInitialData = async () => {
   try {
     isLoading.value = true;
-    const [menuRes, catRes, tablesRes] = await Promise.all([
+    const [menuRes, catRes, tablesRes, resRes] = await Promise.all([
       api.get('/menus'),
       api.get('/categories'),
-      api.get('/tables')
+      api.get('/tables'),
+      api.get('/reservations')
     ]);
     menus.value = menuRes.data;
     categories.value = catRes.data;
     tables.value = tablesRes.data.filter(t => t.status === 'AKTIF');
+    
+    // Only show approved reservations that don't already have an order
+    approvedReservations.value = resRes.data.filter(r => 
+      r.status === 'APPROVED' && !r.orderId
+    );
   } catch (error) {
     console.error('Failed to fetch data:', error);
   } finally {
@@ -541,7 +562,8 @@ const submitOrder = async (payDirectly = false) => {
       cartId.toString(),
       orderType.value,
       customerNotes.value, 
-      selectedTableId.value
+      selectedTableId.value,
+      selectedReservationId.value
     );
     
     if (payDirectly) {
