@@ -67,36 +67,39 @@
           <span class="bg-white/10 px-2 py-1 rounded-md text-[9px] font-black uppercase">{{ localCart.length }} Items</span>
         </div>
 
-        <!-- Cart Items -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-3">
-          <div v-if="localCart.length === 0" class="flex flex-col items-center justify-center h-full text-gray-300 opacity-50">
-            <i class="fa-solid fa-basket-shopping text-5xl mb-4"></i>
-            <p class="text-[10px] font-black uppercase tracking-widest">Keranjang Kosong</p>
-          </div>
+        <!-- Scrollable Middle (Cart + Form) -->
+        <div class="flex-1 overflow-y-auto flex flex-col">
           
-          <div v-else v-for="item in localCart" :key="item.menu.id" class="flex flex-col gap-2 bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
-            <div class="flex justify-between items-start">
-              <p class="text-xs font-black text-gray-900 leading-tight flex-1 pr-2">{{ item.menu.name }}</p>
-              <p class="text-xs font-black text-primary tabular-nums">Rp {{ formatPrice(item.menu.price * item.qty) }}</p>
+          <!-- Cart Items -->
+          <div class="p-4 space-y-3 min-h-[150px]">
+            <div v-if="localCart.length === 0" class="flex flex-col items-center justify-center py-10 text-gray-300 opacity-50">
+              <i class="fa-solid fa-basket-shopping text-5xl mb-4"></i>
+              <p class="text-[10px] font-black uppercase tracking-widest">Keranjang Kosong</p>
             </div>
-            <div class="flex items-center justify-between mt-1">
-              <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">@ Rp {{ formatPrice(item.menu.price) }}</p>
-              <div class="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-0.5">
-                <button @click="updateLocalQty(item.menu.id, -1)" class="w-6 h-6 rounded-md bg-gray-50 text-gray-500 hover:text-red-500 flex items-center justify-center transition-colors">
-                  <i class="fa-solid" :class="item.qty === 1 ? 'fa-trash text-[10px]' : 'fa-minus text-[10px]'"></i>
-                </button>
-                <span class="text-xs font-black w-4 text-center">{{ item.qty }}</span>
-                <button @click="updateLocalQty(item.menu.id, 1)" class="w-6 h-6 rounded-md bg-gray-50 text-gray-500 hover:text-emerald-500 flex items-center justify-center transition-colors">
-                  <i class="fa-solid fa-plus text-[10px]"></i>
-                </button>
+            
+            <div v-else v-for="item in localCart" :key="item.menu.id" class="flex flex-col gap-2 bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
+              <div class="flex justify-between items-start">
+                <p class="text-xs font-black text-gray-900 leading-tight flex-1 pr-2">{{ item.menu.name }}</p>
+                <p class="text-xs font-black text-primary tabular-nums">Rp {{ formatPrice(item.menu.price * item.qty) }}</p>
+              </div>
+              <div class="flex items-center justify-between mt-1">
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">@ Rp {{ formatPrice(item.menu.price) }}</p>
+                <div class="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-0.5">
+                  <button @click="updateLocalQty(item.menu.id, -1)" class="w-6 h-6 rounded-md bg-gray-50 text-gray-500 hover:text-red-500 flex items-center justify-center transition-colors">
+                    <i class="fa-solid" :class="item.qty === 1 ? 'fa-trash text-[10px]' : 'fa-minus text-[10px]'"></i>
+                  </button>
+                  <span class="text-xs font-black w-4 text-center">{{ item.qty }}</span>
+                  <button @click="updateLocalQty(item.menu.id, 1)" class="w-6 h-6 rounded-md bg-gray-50 text-gray-500 hover:text-emerald-500 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Checkout Section -->
-        <div class="p-6 border-t border-gray-100 bg-white">
-          <div class="space-y-4 mb-5">
+          <!-- Checkout Form -->
+          <div class="p-6 border-t border-gray-100 bg-gray-50/30 flex-1">
+            <div class="space-y-4">
             <!-- Customer Name -->
             <div>
                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
@@ -162,7 +165,11 @@
                </select>
             </div>
           </div>
+        </div>
+        </div>
 
+        <!-- Fixed Footer (Total & Actions) -->
+        <div class="p-6 border-t border-gray-100 bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] flex-shrink-0">
           <div class="flex justify-between items-end mb-5 bg-gray-50 p-4 rounded-2xl border border-gray-100">
             <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Tagihan</span>
             <span class="text-2xl font-black text-primary tracking-tighter">Rp {{ formatPrice(totalPrice) }}</span>

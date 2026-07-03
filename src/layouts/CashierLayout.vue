@@ -22,13 +22,13 @@
         <button
           @click="$router.push('/staff/cashier'); selectedOrderId = null; searchQuery = ''"
           class="flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
-          :class="selectedOrderId === null
+          :class="route.path === '/staff/cashier' && selectedOrderId === null
             ? 'bg-gray-900 text-white shadow-md'
             : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
         >
           <i class="fa-solid fa-list-ul mr-1.5"></i>
           Semua Tagihan
-          <span class="ml-2 bg-primary text-white text-[8px] px-1.5 py-0.5 rounded-md font-black">
+          <span v-if="pendingCount > 0" class="ml-2 bg-primary text-white text-[8px] px-1.5 py-0.5 rounded-md font-black">
             {{ pendingCount }}
           </span>
         </button>
@@ -42,6 +42,9 @@
         >
           <i class="fa-solid fa-calendar-check mr-1.5"></i>
           Reservasi
+          <span v-if="pendingReservationsCount > 0" class="ml-2 bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-md font-black">
+            {{ pendingReservationsCount }}
+          </span>
         </button>
       </div>
 
@@ -248,6 +251,16 @@ const fetchOrders = async () => {
   }
 };
 
+const pendingReservationsCount = ref(0);
+const fetchPendingReservations = async () => {
+  try {
+    const res = await api.get('/reservations');
+    pendingReservationsCount.value = res.data.filter(r => r.status === 'PENDING').length;
+  } catch (e) {
+    console.error('Cashier fetch reservations error', e);
+  }
+};
+
 const handleLogout = () => {
   authStore.logout();
   router.push('/login');
@@ -262,7 +275,11 @@ const handleClickOutside = (e) => {
 let pollInterval;
 onMounted(() => {
   fetchOrders();
-  pollInterval = setInterval(fetchOrders, 10000);
+  fetchPendingReservations();
+  pollInterval = setInterval(() => {
+    fetchOrders();
+    fetchPendingReservations();
+  }, 10000);
   clockInterval = setInterval(() => { now.value = new Date(); }, 1000);
   document.addEventListener('click', handleClickOutside);
 });
