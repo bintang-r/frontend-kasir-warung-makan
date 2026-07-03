@@ -12,6 +12,7 @@ export const useReservationStore = defineStore('reservation', {
       notes: ''
     },
     cartItems: [],
+    lastTotalPrice: 0,
     myReservationIds: JSON.parse(localStorage.getItem('myReservationIds') || '[]')
   }),
 
@@ -80,6 +81,10 @@ export const useReservationStore = defineStore('reservation', {
     getQty(menuId) {
       const item = this.cartItems.find(i => i.menuId === menuId);
       return item ? item.qty : 0;
+    },
+
+    saveTotalPrice() {
+      this.lastTotalPrice = this.cartItems.reduce((total, item) => total + (item.price * item.qty), 0);
     }
   },
 

@@ -2,7 +2,7 @@
   <div>
     <!-- The Floating Bar at the bottom (above standard bottom nav) -->
     <transition name="slide-up">
-      <div v-if="reservationStore.isReservationMode" 
+      <div v-if="reservationStore.isReservationMode && !createdReservation" 
            class="fixed bottom-24 left-0 right-0 z-40 px-4 pointer-events-none"
       >
         <div class="bg-gray-900 rounded-2xl shadow-premium p-4 flex items-center justify-between pointer-events-auto">
@@ -28,7 +28,7 @@
 
     <!-- Slide Carousel / Bottom Sheet for Reservation Menus -->
     <transition name="fade">
-      <div v-if="showSlide && reservationStore.isReservationMode" class="fixed inset-0 z-[100] flex flex-col justify-end">
+      <div v-if="(showSlide && reservationStore.isReservationMode) || createdReservation" class="fixed inset-0 z-[100] flex flex-col justify-end">
         <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="!createdReservation && (showSlide = false)"></div>
         <div class="bg-white rounded-t-3xl w-full max-h-[85vh] flex flex-col relative z-10 animate-slide-up shadow-up">
           
@@ -342,7 +342,9 @@ const submitReservation = async () => {
         }
       }
       // Save last total price before clearing store
-      reservationStore.lastTotalPrice = reservationStore.totalPrice;
+      if (typeof reservationStore.saveTotalPrice === 'function') {
+        reservationStore.saveTotalPrice();
+      }
     }
 
     // Move to step 2 — upload proof
