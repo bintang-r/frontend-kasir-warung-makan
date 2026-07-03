@@ -11,7 +11,8 @@ export const useReservationStore = defineStore('reservation', {
       tableId: null,
       notes: ''
     },
-    cartItems: []
+    cartItems: [],
+    myReservationIds: JSON.parse(localStorage.getItem('myReservationIds') || '[]')
   }),
 
   getters: {
@@ -55,6 +56,13 @@ export const useReservationStore = defineStore('reservation', {
           image: menu.image,
           qty: 1
         });
+      }
+    },
+
+    addReservationId(id) {
+      if (!this.myReservationIds.includes(id)) {
+        this.myReservationIds.push(id);
+        localStorage.setItem('myReservationIds', JSON.stringify(this.myReservationIds));
       }
     },
 

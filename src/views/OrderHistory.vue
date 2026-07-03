@@ -38,15 +38,17 @@
       <div v-else class="space-y-6">
         <div 
           v-for="order in orders" 
-          :key="order.id"
-          @click="viewDetails(order.id)"
+          :key="(order.isReservation ? 'rsv-' : 'ord-') + order.id"
+          @click="viewDetails(order)"
           class="bg-white rounded-[32px] p-8 border border-gray-100 shadow-xl shadow-gray-200/40 active:scale-[0.98] transition-all cursor-pointer group hover:border-primary/20 relative overflow-hidden"
         >
           <div class="flex justify-between items-start mb-6 relative z-10">
              <div class="flex items-center gap-3">
                 <div class="w-2 h-8 bg-primary rounded-full group-hover:scale-y-125 transition-transform duration-500"></div>
                 <div>
-                   <p class="text-[9px] font-black text-gray-300 uppercase leading-none tracking-widest">ORDER #{{ order.id.toString() }}</p>
+                   <p class="text-[9px] font-black text-gray-300 uppercase leading-none tracking-widest">
+                      {{ order.isReservation ? 'RESERVASI' : 'ORDER' }} #{{ order.id.toString() }}
+                   </p>
                    <p class="text-[10px] font-bold text-gray-400 mt-1">{{ formatDate(order.createdAt) }}</p>
                 </div>
              </div>
@@ -73,12 +75,16 @@
                 </div>
              </div>
              <div class="flex-1">
-                <p class="text-xs font-black text-gray-900 truncate tracking-tight">
+                <p v-if="order.items && order.items.length > 0" class="text-xs font-black text-gray-900 truncate tracking-tight">
                    {{ order.items.map(i => i.menu?.name).join(', ') }}
                 </p>
+                <p v-else class="text-xs font-black text-gray-900 truncate tracking-tight">
+                   Hanya Pemesanan Tempat
+                </p>
                 <div class="flex items-center gap-2 mt-1">
+                   <span v-if="order.isReservation" class="text-[8px] font-black text-white bg-primary px-1.5 py-0.5 rounded uppercase">RESERVASI</span>
                    <span class="text-[8px] font-black text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded uppercase">{{ order.orderType }}</span>
-                   <p class="text-[9px] font-bold text-gray-400">&bull; {{ order.items.length }} Item</p>
+                   <p v-if="order.items && order.items.length > 0" class="text-[9px] font-bold text-gray-400">&bull; {{ order.items.length }} Item</p>
                 </div>
              </div>
           </div>
@@ -102,16 +108,36 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../services/api';
+import { reservationService } from '../services/reservation.service';
+import { useReservationStore } from '../stores/reservation';
 
 const router = useRouter();
 const orders = ref([]);
 const loading = ref(true);
+const reservationStore = useReservationStore();
 
 const fetchOrders = async () => {
   loading.value = true;
   try {
-    const response = await api.get('/orders');
-    orders.value = Array.isArray(response.data) ? response.data : [];
+    const [ordersRes, rsvRes] = await Promise.all([
+      api.get('/orders').catch(() => ({ data: [] })),
+      reservationService.getMyHistory(reservationStore.myReservationIds).catch(() => [])
+    ]);
+
+    let allOrders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+    let allReservations = Array.isArray(rsvRes) ? rsvRes : [];
+
+    allReservations = allReservations.map(r => ({
+      ...r,
+      isReservation: true,
+      items: r.order ? r.order.items : [],
+      orderType: 'DINE_IN',
+      totalPrice: r.order ? r.order.totalPrice : 0,
+      payments: r.order ? r.order.payments : []
+    }));
+
+    const combined = [...allOrders, ...allReservations].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    orders.value = combined;
   } catch (e) {
     console.error('Error fetching orders', e);
   } finally {
@@ -135,7 +161,7 @@ const formatStatus = (s) => {
 
 const getStatusClass = (s) => {
   if (s === 'PENDING') return 'bg-orange-50 text-orange-600';
-  if (s === 'CONFIRMED' || s === 'COOKING') return 'bg-blue-50 text-blue-600';
+  if (s === 'CONFIRMED' || s === 'COOKING' || s === 'APPROVED') return 'bg-blue-50 text-blue-600';
   if (s === 'READY') return 'bg-emerald-50 text-emerald-600';
   if (s === 'COMPLETED') return 'bg-gray-100 text-gray-500';
   return 'bg-red-50 text-red-600';
@@ -152,7 +178,13 @@ const getPaymentBadgeClass = (order) => {
   return p?.status === 'PAID' ? 'text-emerald-500' : 'text-red-400';
 };
 
-const viewDetails = (id) => router.push(`/order-status?id=${id}`);
+const viewDetails = (order) => {
+  if (order.isReservation) {
+    router.push(`/reservation-status?id=${order.id}`);
+  } else {
+    router.push(`/order-status?id=${order.id}`);
+  }
+};
 </script>
 
 <style scoped>

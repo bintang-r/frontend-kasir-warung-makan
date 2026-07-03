@@ -39,11 +39,28 @@
           </div>
 
           <div>
-            <label class="block text-xs font-black text-gray-900 uppercase tracking-widest mb-1.5">Meja (Opsional)</label>
-            <select v-model="form.tableId" class="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm font-bold border-none focus:ring-2 focus:ring-primary/30 outline-none">
-              <option :value="null">Pilih Meja</option>
-              <option v-for="t in tables" :key="t.id" :value="t.id">{{ t.name }} (Kapasitas: {{ t.capacity }})</option>
-            </select>
+            <label class="block text-xs font-black text-gray-900 uppercase tracking-widest mb-1.5">Pilih Meja (Opsional)</label>
+            <div class="grid grid-cols-3 gap-3">
+              <button
+                v-for="t in tables" 
+                :key="t.id"
+                type="button"
+                @click="!t.isBooked ? form.tableId = t.id : null"
+                :disabled="t.isBooked"
+                :class="[
+                  'p-3 rounded-xl border-2 transition-all text-center',
+                  form.tableId === t.id ? 'border-primary bg-primary/10 text-primary' : 'border-gray-100 bg-gray-50 text-gray-600',
+                  t.isBooked ? 'opacity-50 cursor-not-allowed border-red-200 bg-red-50 text-red-500' : 'hover:border-primary/50'
+                ]"
+              >
+                <div class="font-black text-sm">{{ t.name }}</div>
+                <div class="text-[10px] font-bold mt-1" :class="t.isBooked ? 'text-red-400' : 'text-gray-400'">
+                  <span v-if="t.isBooked">Penuh</span>
+                  <span v-else>{{ t.capacity || 4 }} Org</span>
+                </div>
+              </button>
+            </div>
+            <p v-if="!form.date" class="text-[10px] text-gray-400 font-bold mt-2"><i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Pilih tanggal terlebih dahulu untuk melihat ketersediaan meja.</p>
           </div>
 
           <div>
@@ -65,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import { useReservationStore } from '../stores/reservation';
 import api from '../services/api';
 
@@ -90,9 +107,29 @@ const form = reactive({
 onMounted(async () => {
   try {
     const res = await api.get('/tables');
-    tables.value = res.data;
+    tables.value = res.data.map(t => ({ ...t, isBooked: false }));
   } catch (error) {
     console.error(error);
+  }
+});
+
+watch(() => form.date, async (newDate) => {
+  if (newDate) {
+    try {
+      const dateString = newDate.split('T')[0];
+      const res = await api.get(`/reservations/availability?date=${dateString}`);
+      tables.value = res.data;
+      
+      // Jika meja yang dipilih ternyata sudah dibooking di tanggal baru, reset
+      const selectedTable = tables.value.find(t => t.id === form.tableId);
+      if (selectedTable && selectedTable.isBooked) {
+        form.tableId = null;
+      }
+    } catch (error) {
+      console.error('Gagal mengecek ketersediaan meja:', error);
+    }
+  } else {
+    tables.value.forEach(t => t.isBooked = false);
   }
 });
 

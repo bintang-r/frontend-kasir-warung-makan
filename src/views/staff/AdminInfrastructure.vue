@@ -48,7 +48,8 @@
                  </div>
                  <div>
                     <span class="font-black text-gray-900 uppercase tracking-widest text-sm">{{ table.name }}</span>
-                    <p class="text-[9px] font-black uppercase tracking-tighter" :class="table.status === 'AKTIF' ? 'text-green-500' : 'text-red-500'">Status: {{ table.status }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 mt-0.5">Kapasitas: {{ table.capacity }} Orang</p>
+                    <p class="text-[9px] font-black uppercase tracking-tighter mt-1" :class="table.status === 'AKTIF' ? 'text-green-500' : 'text-red-500'">Status: {{ table.status }}</p>
                  </div>
               </div>
               <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -92,6 +93,7 @@
           <h3 class="text-xl font-black text-gray-900 mb-6 uppercase tracking-tight">Kelola Meja</h3>
           <div class="space-y-4 mb-6">
              <input v-model="tableForm.name" placeholder="E.g. Meja 01" class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold focus:bg-white focus:border-gray-900 outline-none transition-all" />
+             <input type="number" v-model="tableForm.capacity" placeholder="Kapasitas (Orang)" class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold focus:bg-white focus:border-gray-900 outline-none transition-all" />
              <select v-model="tableForm.status" class="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl py-4 px-6 text-sm font-bold appearance-none">
                 <option value="AKTIF">AKTIF</option>
                 <option value="NONAKTIF">NONAKTIF</option>
@@ -141,7 +143,7 @@ const categoryModalOpen = ref(false);
 const categoryForm = ref({ id: null, name: '' });
 
 const tableModalOpen = ref(false);
-const tableForm = ref({ id: null, name: '', status: 'AKTIF' });
+const tableForm = ref({ id: null, name: '', capacity: 4, status: 'AKTIF' });
 
 const deleteModalOpen = ref(false);
 const deleteType = ref('');
@@ -171,7 +173,7 @@ const submitCategory = async () => {
 };
 
 const openTableModal = (table = null) => {
-   tableForm.value = table ? { ...table } : { id: null, name: '', status: 'AKTIF' };
+   tableForm.value = table ? { ...table } : { id: null, name: '', capacity: 4, status: 'AKTIF' };
    tableModalOpen.value = true;
 };
 

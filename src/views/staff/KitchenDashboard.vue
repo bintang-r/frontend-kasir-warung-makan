@@ -6,11 +6,23 @@
       <div class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-black text-white tracking-tight">Papan Dapur</h1>
-          <p class="text-white/30 text-xs font-bold uppercase tracking-widest mt-1">
-            {{ activeOrders.length }} pesanan aktif · drag kartu untuk pindah status
-          </p>
+          <div class="flex gap-2 mt-2">
+            <button 
+              @click="orderFilter = 'ALL'" 
+              class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
+              :class="orderFilter === 'ALL' ? 'bg-primary text-white' : 'bg-white/10 text-white/50 hover:bg-white/20'"
+            >Semua Pesanan</button>
+            <button 
+              @click="orderFilter = 'RESERVASI'" 
+              class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
+              :class="orderFilter === 'RESERVASI' ? 'bg-red-500 text-white' : 'bg-white/10 text-white/50 hover:bg-white/20'"
+            >
+              Reservasi 
+              <span v-if="reservationCount > 0" class="ml-1 bg-white text-red-500 px-1.5 py-0.5 rounded-full text-[8px]">{{ reservationCount }}</span>
+            </button>
+          </div>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-3 mt-4">
           <div class="stat-chip bg-blue-500/10 border-blue-500/30 text-blue-400">
             <i class="fa-solid fa-clock-rotate-left"></i>
             {{ grouped.CONFIRMED.length }} Antri
@@ -267,11 +279,23 @@ const props = defineProps({
 
 const emit = defineEmits(['refresh']);
 const toast = ref(null);
+const orderFilter = ref('ALL');
 
 // ── Computed helpers ──────────────────────────────────────────────────────
-const activeOrders = computed(() =>
+const baseActiveOrders = computed(() =>
   props.orders.filter(o => ['PENDING', 'CONFIRMED', 'COOKING', 'READY'].includes(o.status))
 );
+
+const reservationCount = computed(() => 
+  baseActiveOrders.value.filter(o => o.reservations?.length > 0).length
+);
+
+const activeOrders = computed(() => {
+  if (orderFilter.value === 'RESERVASI') {
+    return baseActiveOrders.value.filter(o => o.reservations?.length > 0);
+  }
+  return baseActiveOrders.value;
+});
 
 const grouped = computed(() => {
   const g = { CONFIRMED: [], COOKING: [], READY: [] };

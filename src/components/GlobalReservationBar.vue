@@ -3,7 +3,7 @@
     <!-- The Floating Bar at the bottom (above standard bottom nav) -->
     <transition name="slide-up">
       <div v-if="reservationStore.isReservationMode" 
-           class="fixed bottom-[72px] left-0 right-0 z-40 px-4 pointer-events-none"
+           class="fixed bottom-24 left-0 right-0 z-40 px-4 pointer-events-none"
       >
         <div class="bg-gray-900 rounded-2xl shadow-premium p-4 flex items-center justify-between pointer-events-auto">
           <div class="flex flex-col flex-1" @click="showSlide = true">
@@ -176,8 +176,8 @@ const submitReservation = async () => {
       name: data.name,
       phone: data.phone,
       date: new Date(data.date).toISOString(),
-      guestCount: data.guestCount,
-      tableId: data.tableId,
+      guestCount: Number(data.guestCount),
+      tableId: data.tableId ? Number(data.tableId) : undefined,
       notes: data.notes,
       paymentType: paymentType.value,
       items: reservationStore.cartItems.map(i => ({
@@ -187,12 +187,16 @@ const submitReservation = async () => {
       }))
     };
     
-    await reservationService.createReservation(payload);
+    const response = await reservationService.createReservation(payload);
     
-    alert('Reservasi berhasil dikirim dan menunggu konfirmasi kasir.');
+    // Save to local store for guest tracking
+    if (response && response.id) {
+      reservationStore.addReservationId(response.id);
+    }
+    
     showSlide.value = false;
     reservationStore.cancelReservation();
-    router.push('/history');
+    router.push(`/reservation-status?id=${response.id}`);
   } catch (error) {
     console.error(error);
     alert('Terjadi kesalahan saat memproses reservasi.');

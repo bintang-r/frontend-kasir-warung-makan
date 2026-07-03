@@ -7,6 +7,7 @@ const Menu = () => import('../views/Menu.vue');
 const Cart = () => import('../views/Cart.vue');
 const Checkout = () => import('../views/Checkout.vue');
 const OrderStatus = () => import('../views/OrderStatus.vue');
+const ReservationStatus = () => import('../views/ReservationStatus.vue');
 const OrderHistory = () => import('../views/OrderHistory.vue');
 const Profile = () => import('../views/Profile.vue');
 const OrderPayment = () => import('../views/OrderPayment.vue');
@@ -44,6 +45,7 @@ const routes = [
   { path: '/checkout', component: Checkout, name: 'Checkout' },
   { path: '/payment/:id', component: OrderPayment, name: 'OrderPayment' },
   { path: '/order-status', component: OrderStatus, name: 'OrderStatus' },
+  { path: '/reservation-status', component: ReservationStatus, name: 'ReservationStatus' },
   { path: '/history', component: OrderHistory, name: 'OrderHistory' },
   { path: '/profile', component: Profile, name: 'Profile' },
   { path: '/login', component: Login, name: 'Login' },

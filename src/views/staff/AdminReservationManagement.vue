@@ -50,6 +50,47 @@
       </div>
     </div>
 
+    <!-- Table Availability Check Card -->
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-gray-900">Cek Ketersediaan Meja</h3>
+            <p class="text-xs text-gray-500 font-bold">Pilih tanggal untuk melihat meja mana saja yang kosong.</p>
+          </div>
+        </div>
+        <div>
+          <input 
+            type="date" 
+            v-model="availabilityDate" 
+            @change="checkAvailability"
+            class="bg-gray-50 border-none rounded-xl px-4 py-3 font-black text-gray-900 focus:ring-2 focus:ring-blue-500/30 outline-none"
+          />
+        </div>
+      </div>
+      
+      <div v-if="availabilityDate" class="grid grid-cols-4 lg:grid-cols-6 gap-3 mt-4">
+        <div 
+          v-for="t in tablesAvailability" 
+          :key="t.id"
+          class="p-3 rounded-xl border-2 text-center"
+          :class="t.isBooked ? 'border-red-100 bg-red-50' : 'border-emerald-100 bg-emerald-50'"
+        >
+          <div class="font-black text-sm" :class="t.isBooked ? 'text-red-600' : 'text-emerald-600'">{{ t.name }}</div>
+          <div class="text-[10px] font-bold mt-1" :class="t.isBooked ? 'text-red-400' : 'text-emerald-500'">
+            <span v-if="t.isBooked">Terisi</span>
+            <span v-else>Kosong ({{ t.capacity || 4 }} Org)</span>
+          </div>
+        </div>
+        <div v-if="tablesAvailability.length === 0" class="col-span-full text-center text-xs text-gray-400 font-bold py-4">
+          Tidak ada meja yang tersedia.
+        </div>
+      </div>
+    </div>
+
     <!-- Content -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden">
       <!-- Tabs -->
@@ -150,6 +191,19 @@ const loading = ref(false);
 const statusFilter = ref('ALL');
 const dpPercent = ref(50);
 const savingDp = ref(false);
+
+const availabilityDate = ref('');
+const tablesAvailability = ref([]);
+
+const checkAvailability = async () => {
+  if (!availabilityDate.value) return;
+  try {
+    const res = await api.get(`/reservations/availability?date=${availabilityDate.value}`);
+    tablesAvailability.value = res.data;
+  } catch (error) {
+    console.error('Failed to check availability', error);
+  }
+};
 
 const fetchData = async () => {
   loading.value = true;
