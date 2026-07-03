@@ -22,6 +22,21 @@
             </button>
           </div>
         </div>
+        
+        <!-- Filter Tanggal Reservasi -->
+        <div v-if="orderFilter === 'RESERVASI' && reservationDateCounts.length > 0" class="flex gap-2 mt-4 items-center">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mr-2"><i class="fa-regular fa-calendar mr-1"></i> Tanggal Reservasi:</span>
+          <select 
+            v-model="selectedDate"
+            class="bg-[#1a1a1a] border border-white/10 text-white text-xs font-bold rounded-xl px-3 py-1.5 outline-none focus:border-red-500 transition-colors"
+          >
+            <option value="" disabled selected>-- Pilih Tanggal --</option>
+            <option v-for="d in reservationDateCounts" :key="d.date" :value="d.date">
+              {{ formatDateLabel(d.date) }} ({{ d.count }} Pesanan)
+            </option>
+          </select>
+        </div>
+
         <div class="flex gap-3 mt-4">
           <div class="stat-chip bg-blue-500/10 border-blue-500/30 text-blue-400">
             <i class="fa-solid fa-clock-rotate-left"></i>
@@ -68,7 +83,7 @@
                   <div>
                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
                       <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
-                      <span v-if="order.reservations?.length" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
+                      <span v-if="order.reservation" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
                     </div>
                     <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
                   </div>
@@ -83,7 +98,11 @@
               </div>
             </div>
             <!-- Empty state -->
-            <div v-if="grouped.CONFIRMED.length === 0" class="empty-col-state">
+            <div v-if="orderFilter === 'RESERVASI' && !selectedDate" class="empty-col-state">
+              <i class="fa-solid fa-calendar-day" style="font-size:36px; margin-bottom:12px;"></i>
+              <p>Pilih tanggal reservasi<br/>terlebih dahulu</p>
+            </div>
+            <div v-else-if="grouped.CONFIRMED.length === 0" class="empty-col-state">
               <i class="fa-solid fa-inbox" style="font-size:36px; margin-bottom:12px;"></i>
               <p>Santai dulu,<br/>belum ada antrian</p>
             </div>
@@ -118,7 +137,7 @@
                   <div>
                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
                       <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
-                      <span v-if="order.reservations?.length" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
+                      <span v-if="order.reservation" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
                     </div>
                     <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
                   </div>
@@ -132,7 +151,11 @@
                 </div>
               </div>
             </div>
-            <div v-if="grouped.COOKING.length === 0" class="empty-col-state">
+            <div v-if="orderFilter === 'RESERVASI' && !selectedDate" class="empty-col-state">
+              <i class="fa-solid fa-calendar-day" style="font-size:36px; margin-bottom:12px;"></i>
+              <p>Pilih tanggal reservasi<br/>terlebih dahulu</p>
+            </div>
+            <div v-else-if="grouped.COOKING.length === 0" class="empty-col-state">
               <i class="fa-solid fa-fire" style="font-size:36px; margin-bottom:12px;"></i>
               <p>Seret pesanan ke sini<br/>untuk mulai masak</p>
             </div>
@@ -167,7 +190,7 @@
                   <div>
                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
                       <p style="font-size:9px; font-weight:900; opacity:.4; letter-spacing:.1em; text-transform:uppercase; color:#fff;">#{{ order.id }} · {{ order.table?.name || 'Takeaway' }}</p>
-                      <span v-if="order.reservations?.length" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
+                      <span v-if="order.reservation" style="background:#ef4444; color:#fff; font-size:8px; font-weight:900; padding:2px 4px; border-radius:4px; letter-spacing:.1em;">RESERVASI</span>
                     </div>
                     <p style="font-size:12px; font-weight:900; color:#fff;">{{ order.user?.name || 'Guest' }}</p>
                   </div>
@@ -181,7 +204,11 @@
                 </div>
               </div>
             </div>
-            <div v-if="grouped.READY.length === 0" class="empty-col-state">
+            <div v-if="orderFilter === 'RESERVASI' && !selectedDate" class="empty-col-state">
+              <i class="fa-solid fa-calendar-day" style="font-size:36px; margin-bottom:12px;"></i>
+              <p>Pilih tanggal reservasi<br/>terlebih dahulu</p>
+            </div>
+            <div v-else-if="grouped.READY.length === 0" class="empty-col-state">
               <i class="fa-solid fa-check-circle" style="font-size:36px; margin-bottom:12px;"></i>
               <p>Belum ada hidangan<br/>yang siap saji</p>
             </div>
@@ -280,6 +307,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh']);
 const toast = ref(null);
 const orderFilter = ref('ALL');
+const selectedDate = ref('');
 
 // ── Computed helpers ──────────────────────────────────────────────────────
 const baseActiveOrders = computed(() =>
@@ -287,12 +315,38 @@ const baseActiveOrders = computed(() =>
 );
 
 const reservationCount = computed(() => 
-  baseActiveOrders.value.filter(o => o.reservations?.length > 0).length
+  baseActiveOrders.value.filter(o => o.reservation).length
 );
+
+const reservationDateCounts = computed(() => {
+  const counts = {};
+  baseActiveOrders.value.forEach(o => {
+    if (o.reservation?.date) {
+      const dateStr = new Date(o.reservation.date).toISOString().split('T')[0];
+      counts[dateStr] = (counts[dateStr] || 0) + 1;
+    }
+  });
+  return Object.keys(counts).sort().map(date => ({
+    date,
+    count: counts[date]
+  }));
+});
+
+const formatDateLabel = (dateStr) => {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  return new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: '2-digit', month: 'short' }).format(date);
+};
 
 const activeOrders = computed(() => {
   if (orderFilter.value === 'RESERVASI') {
-    return baseActiveOrders.value.filter(o => o.reservations?.length > 0);
+    if (!selectedDate.value) return []; // Jangan tampilkan sebelum dipilih
+    return baseActiveOrders.value.filter(o => {
+      if (!o.reservation) return false;
+      if (!o.reservation.date) return true;
+      const dateStr = new Date(o.reservation.date).toISOString().split('T')[0];
+      return dateStr === selectedDate.value;
+    });
   }
   return baseActiveOrders.value;
 });

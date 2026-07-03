@@ -137,7 +137,7 @@
                     <span class="font-black text-gray-900 text-sm tabular-nums"
                       >#{{ order.id }}</span
                     >
-                    <span v-if="order.reservations?.length" class="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">
+                    <span v-if="order.reservation" class="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">
                       Reservasi
                     </span>
                   </div>

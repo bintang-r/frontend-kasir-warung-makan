@@ -79,8 +79,22 @@
                     </div>
                     <span class="text-[10px] font-black text-gray-900">{{ res.order.items?.length || 0 }} Menu</span>
                     <span v-if="res.order.payments?.length" class="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1">
-                      {{ formatPrice(res.order.payments[0].amount) }} Dibayar
+                      {{ formatPrice(res.order.payments.reduce((sum, p) => sum + Number(p.amount), 0)) }} Dibayar
                     </span>
+                  </div>
+                  
+                  <!-- Proof of Payment Thumbnail -->
+                  <div v-if="res.paymentProof" class="mt-2 flex items-center gap-2">
+                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Bukti ({{ res.paymentType }}):</span>
+                    <div 
+                      @click="previewImage = res.paymentProof"
+                      class="w-12 h-8 rounded border border-gray-200 overflow-hidden shadow-sm cursor-pointer hover:border-primary transition-colors bg-gray-50 flex items-center justify-center relative group"
+                    >
+                      <img :src="getImageUrl(res.paymentProof)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px]">
+                        <i class="fa-solid fa-eye"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </td>
@@ -96,10 +110,11 @@
                 <div v-if="res.status === 'PENDING'" class="flex items-center justify-end gap-2">
                   <button
                     @click="updateStatus(res.id, 'APPROVED')"
-                    class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center"
-                    title="Terima"
+                    class="h-8 px-3 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                    :title="res.paymentType === 'DP' ? 'Konfirmasi DP & Masukkan Dapur' : (res.paymentType === 'FULL' ? 'Konfirmasi Lunas & Masukkan Dapur' : 'Terima Reservasi')"
                   >
-                    <i class="fa-solid fa-check"></i>
+                    <i class="fa-solid fa-check"></i> 
+                    {{ res.paymentType === 'DP' ? 'Konfirmasi DP' : (res.paymentType === 'FULL' ? 'Konfirmasi Lunas' : 'Setujui') }}
                   </button>
                   <button
                     @click="updateStatus(res.id, 'REJECTED')"
@@ -110,6 +125,13 @@
                   </button>
                 </div>
                 <div v-else-if="res.status === 'APPROVED'" class="flex items-center justify-end gap-2">
+                  <button
+                    @click="printReceipt(res)"
+                    class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all"
+                    title="Cetak Struk DP/Pelunasan"
+                  >
+                    <i class="fa-solid fa-print mr-1"></i> Struk
+                  </button>
                   <button
                     @click="updateStatus(res.id, 'COMPLETED')"
                     class="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all"
@@ -136,16 +158,33 @@
         </table>
       </div>
     </div>
+
+    <!-- Image Preview Modal -->
+    <div v-if="previewImage" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" @click="previewImage = null">
+      <div class="relative bg-white rounded-3xl overflow-hidden max-w-lg w-full shadow-2xl p-6 flex flex-col gap-4" @click.stop>
+        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+          <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest">Bukti Pembayaran</h3>
+          <button @click="previewImage = null" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+        <div class="rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 max-h-[60vh] flex items-center justify-center">
+          <img :src="getImageUrl(previewImage)" class="max-w-full max-h-full object-contain" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { reservationService } from '../../services/reservation.service';
+import { getImageUrl } from '../../services/api';
 
 const reservations = ref([]);
 const loading = ref(false);
 const statusFilter = ref('ALL');
+const previewImage = ref(null);
 
 const fetchReservations = async () => {
   loading.value = true;
@@ -176,6 +215,80 @@ const updateStatus = async (id, status) => {
     console.error('Failed to update status', error);
     alert('Gagal mengupdate status reservasi');
   }
+};
+
+const printReceipt = (res) => {
+  const receiptWindow = window.open('', '_blank', 'width=400,height=600');
+  let itemsHtml = '';
+  let subtotal = 0;
+  
+  if (res.order && res.order.items) {
+    res.order.items.forEach(item => {
+      const price = Number(item.price);
+      subtotal += price * item.qty;
+      itemsHtml += `
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span>${item.qty}x ${item.menu?.name || 'Item'}</span>
+          <span>${formatPrice(price * item.qty)}</span>
+        </div>
+      `;
+    });
+  }
+
+  const tax = subtotal * 0.11;
+  const total = subtotal + tax;
+
+  const html = `
+    <html>
+      <head>
+        <title>Struk Reservasi #${res.id}</title>
+        <style>
+          body { font-family: monospace; padding: 20px; color: #000; }
+          .header { text-align: center; margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+          .title { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+          .subtitle { font-size: 12px; }
+          .info { font-size: 12px; margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+          .items { margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+          .total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
+          .footer { text-align: center; font-size: 10px; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">RM SIANTAR MINANG</div>
+          <div class="subtitle">Jl. Contoh No. 123, Kota</div>
+          <div class="subtitle">STRUK RESERVASI / DP</div>
+        </div>
+        <div class="info">
+          <div>ID: RES-${res.id}</div>
+          <div>Nama: ${res.name}</div>
+          <div>Meja: ${res.table?.name || '-'}</div>
+          <div>Waktu: ${formatDate(res.date)} ${formatTime(res.date)}</div>
+        </div>
+        ${itemsHtml ? `<div class="items">${itemsHtml}</div>` : ''}
+        ${itemsHtml ? `
+        <div style="font-size:12px; display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>Subtotal</span><span>${formatPrice(subtotal)}</span>
+        </div>
+        <div style="font-size:12px; display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>PB1 (11%)</span><span>${formatPrice(tax)}</span>
+        </div>
+        <div class="total" style="margin-top:10px;">
+          <span>TOTAL</span><span>${formatPrice(total)}</span>
+        </div>
+        ` : '<div style="text-align:center;font-size:12px;margin:20px 0;">(Hanya Pemesanan Tempat)</div>'}
+        <div class="footer">
+          Terima kasih atas reservasi Anda!<br/>
+          Harap tunjukkan struk ini saat kedatangan.
+        </div>
+      </body>
+    </html>
+  `;
+  receiptWindow.document.write(html);
+  receiptWindow.document.close();
+  setTimeout(() => {
+    receiptWindow.print();
+  }, 500);
 };
 
 onMounted(() => {

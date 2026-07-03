@@ -128,6 +128,80 @@
               </div>
            </div>
         </div>
+
+        <!-- Payment Upload Section -->
+        <div v-if="reservation.status === 'PENDING' && reservation.order && reservation.paymentType" class="mt-8 bg-white border border-gray-100 shadow-premium rounded-[32px] p-8 mb-12">
+           <h3 class="font-black text-xs text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
+              <i class="fa-solid fa-money-bill-transfer text-primary"></i>
+              Konfirmasi Pembayaran {{ reservation.paymentType === 'DP' ? 'DP (50%)' : 'Lunas' }}
+           </h3>
+           
+           <div class="space-y-6">
+              <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                 <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Jumlah yang Harus Ditransfer</p>
+                 <p class="text-2xl font-black text-gray-900">
+                   Rp {{ formatPrice(reservation.paymentType === 'DP' ? reservation.order.totalPrice / 2 : reservation.order.totalPrice) }}
+                 </p>
+              </div>
+
+              <!-- Bank Info -->
+              <div class="p-6 bg-blue-50/50 rounded-2xl border border-blue-100/50 text-blue-900">
+                 <div class="flex items-center justify-between mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/1200px-BNI_logo.svg.png" class="h-5" />
+                    <span class="text-[9px] font-black uppercase tracking-widest opacity-60">Bank BNI</span>
+                 </div>
+                 <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-blue-100 group cursor-pointer active:scale-95 transition-all" @click="copyText('882910283129')">
+                    <div>
+                       <p class="text-[8px] font-black uppercase text-gray-400 tracking-widest mb-1">Nomor Rekening</p>
+                       <p class="text-sm font-black text-gray-900 tracking-wider">8829 1028 3129</p>
+                    </div>
+                    <i class="fa-solid fa-copy text-gray-400 group-hover:text-primary transition-colors"></i>
+                 </div>
+                 <p class="text-[9px] font-bold text-gray-500 mt-3 text-center">A/N RM SIANTAR MINANG</p>
+              </div>
+
+              <!-- Upload File -->
+              <div v-if="!reservation.paymentProof" class="space-y-4">
+                 <p class="text-xs font-bold text-gray-500 leading-relaxed">Silakan transfer sesuai nominal di atas, lalu unggah bukti transfer di bawah ini.</p>
+                 <div class="relative border-2 border-dashed border-gray-200 hover:border-primary rounded-2xl p-6 transition-colors flex flex-col items-center justify-center cursor-pointer bg-gray-50/50">
+                    <input type="file" ref="fileInput" @change="onFileSelected" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 mb-2"></i>
+                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest">{{ selectedFile ? selectedFile.name : 'Pilih Foto Bukti' }}</p>
+                    <p class="text-[9px] text-gray-400 mt-1">Format: JPG, PNG (Max 5MB)</p>
+                 </div>
+                 <button 
+                    @click="uploadProof"
+                    :disabled="!selectedFile || isUploading"
+                    class="w-full bg-primary text-white h-12 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-40 disabled:scale-100 transition-all flex items-center justify-center gap-2"
+                 >
+                    <span v-if="!isUploading">Unggah Bukti</span>
+                    <div v-else class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                 </button>
+              </div>
+
+              <!-- Already Uploaded Proof -->
+              <div v-else class="space-y-4">
+                 <div class="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex gap-3 text-emerald-800">
+                    <i class="fa-solid fa-circle-check text-xl mt-0.5"></i>
+                    <div>
+                       <p class="text-xs font-black uppercase tracking-widest">Bukti Berhasil Diunggah!</p>
+                       <p class="text-[10px] font-bold opacity-80 mt-1">Tim kami sedang memverifikasi pembayaran Anda. Status akan diperbarui secara otomatis.</p>
+                    </div>
+                 </div>
+                 <div class="rounded-2xl overflow-hidden border border-gray-100 shadow-sm aspect-video max-h-48 bg-gray-100">
+                    <img :src="getImageUrl(reservation.paymentProof)" class="w-full h-full object-cover" />
+                 </div>
+                 <button 
+                    @click="triggerFileReupload"
+                    class="w-full bg-gray-150 text-gray-600 hover:bg-gray-200 h-10 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                 >
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Unggah Ulang Bukti
+                 </button>
+                 <!-- Hidden input for reupload -->
+                 <input type="file" ref="reuploadInput" @change="onReuploadSelected" class="hidden" accept="image/*" />
+              </div>
+           </div>
+        </div>
       </div>
       
       <div v-else class="flex flex-col items-center justify-center py-32 flex-1 px-6 text-center">
@@ -160,6 +234,59 @@ const toast = ref(null);
 const reservationId = ref(route.query.id);
 const reservation = ref(null);
 const isLoading = ref(true);
+
+const selectedFile = ref(null);
+const isUploading = ref(false);
+const fileInput = ref(null);
+const reuploadInput = ref(null);
+
+const onFileSelected = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB!');
+      return;
+    }
+    selectedFile.value = file;
+  }
+};
+
+const uploadProof = async () => {
+  if (!selectedFile.value || !reservationId.value) return;
+  isUploading.value = true;
+  try {
+    const res = await reservationService.uploadPaymentProof(reservationId.value, selectedFile.value);
+    toast.value?.show('Berhasil!', 'Bukti pembayaran berhasil diunggah.', 'success');
+    reservation.value.paymentProof = res.paymentProof;
+    selectedFile.value = null;
+  } catch (error) {
+    console.error('Failed to upload proof:', error);
+    toast.value?.show('Gagal', 'Gagal mengunggah bukti pembayaran.', 'error');
+  } finally {
+    isUploading.value = false;
+  }
+};
+
+const triggerFileReupload = () => {
+  reuploadInput.value?.click();
+};
+
+const onReuploadSelected = async (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB!');
+      return;
+    }
+    selectedFile.value = file;
+    await uploadProof();
+  }
+};
+
+const copyText = (text) => {
+  navigator.clipboard.writeText(text);
+  toast.value?.show('Berhasil Salin', 'Nomor rekening disalin ke papan klip.', 'success');
+};
 
 let refreshInterval = null;
 

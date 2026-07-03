@@ -23,5 +23,16 @@ export const reservationService = {
   updateReservationStatus: async (id, status, notes = '') => {
     const response = await api.patch(`/reservations/${id}/status`, { status, notes });
     return response.data;
+  },
+
+  uploadPaymentProof: async (id, file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post(`/reservations/${id}/upload-proof`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
   }
 };
