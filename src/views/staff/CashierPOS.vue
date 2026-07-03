@@ -117,6 +117,31 @@
               </div>
             </div>
             
+            <!-- Reservation Fields -->
+            <div v-if="orderType === 'RESERVATION'" class="animate-in fade-in slide-in-from-top-2 mb-4 space-y-4">
+               <div class="grid grid-cols-2 gap-4">
+                 <div>
+                   <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                     <i class="fa-regular fa-calendar"></i> Tanggal
+                   </p>
+                   <input type="date" v-model="reservationDate" :min="minDate" @change="checkAvailability" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5" />
+                 </div>
+                 <div>
+                   <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                     <i class="fa-regular fa-clock"></i> Jam
+                   </p>
+                   <input type="time" v-model="reservationTime" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5" />
+                 </div>
+               </div>
+
+               <div>
+                 <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                   <i class="fa-solid fa-users"></i> Jumlah Tamu
+                 </p>
+                 <input type="number" v-model.number="guestCount" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5" />
+               </div>
+            </div>
+
             <!-- Table Input (if Dine in or Reservation) -->
             <div v-if="['DINE_IN', 'RESERVATION'].includes(orderType)" class="animate-in fade-in slide-in-from-top-2 mb-4">
                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
@@ -124,19 +149,8 @@
                </p>
                <select v-model="selectedTableId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5">
                   <option :value="null">Pilih Meja...</option>
-                  <option v-for="t in tables" :key="t.id" :value="t.id">{{ t.name }}</option>
-               </select>
-            </div>
-
-            <!-- Link to Reservation (if Reservation Type) -->
-            <div v-if="orderType === 'RESERVATION'" class="animate-in fade-in slide-in-from-top-2 mb-4">
-               <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                 <i class="fa-regular fa-calendar-check"></i> Pilih Reservasi
-               </p>
-               <select v-model="selectedReservationId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5">
-                  <option :value="null">-- Pilih Reservasi --</option>
-                  <option v-for="r in approvedReservations" :key="r.id" :value="r.id">
-                    {{ new Date(r.date).toLocaleDateString('id-ID') }} - {{ r.name }} ({{ r.guestCount }} org)
+                  <option v-for="t in tablesWithAvailability" :key="t.id" :value="t.id" :disabled="t.isBooked">
+                    {{ t.name }} {{ t.isBooked ? '(Sudah Dipesan)' : '' }}
                   </option>
                </select>
             </div>
@@ -398,7 +412,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject, nextTick } from 'vue';
+import { ref, computed, onMounted, inject, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api, { getImageUrl } from '../../services/api';
 import { useOrderStore } from '../../stores/order';
@@ -413,14 +427,20 @@ const cashierToast = inject('cashierToast', ref(null));
 const menus = ref([]);
 const categories = ref([]);
 const tables = ref([]);
-const approvedReservations = ref([]);
+const tablesWithAvailability = ref([]);
 const isLoading = ref(true);
 
 const selectedCategory = ref(null);
 const orderType = ref('DINE_IN');
 const selectedTableId = ref(null);
 const customerNotes = ref('');
-const selectedReservationId = ref(null);
+
+// Reservation specific state
+const today = new Date().toISOString().split('T')[0];
+const minDate = today;
+const reservationDate = ref(today);
+const reservationTime = ref('12:00');
+const guestCount = ref(2);
 
 const localCart = ref([]);
 const isSubmitting = ref(false);
@@ -430,20 +450,18 @@ const formatPrice = (price) => new Intl.NumberFormat('id-ID').format(price || 0)
 const fetchInitialData = async () => {
   try {
     isLoading.value = true;
-    const [menuRes, catRes, tablesRes, resRes] = await Promise.all([
+    const [menuRes, catRes, tablesRes] = await Promise.all([
       api.get('/menus'),
       api.get('/categories'),
       api.get('/tables'),
-      api.get('/reservations')
     ]);
     menus.value = menuRes.data;
     categories.value = catRes.data;
     tables.value = tablesRes.data.filter(t => t.status === 'AKTIF');
+    tablesWithAvailability.value = [...tables.value]; // Default copy
     
-    // Only show approved reservations that don't already have an order
-    approvedReservations.value = resRes.data.filter(r => 
-      r.status === 'APPROVED' && !r.orderId
-    );
+    // Check initial availability
+    await checkAvailability();
   } catch (error) {
     console.error('Failed to fetch data:', error);
   } finally {
@@ -453,6 +471,23 @@ const fetchInitialData = async () => {
 
 onMounted(() => {
   fetchInitialData();
+});
+
+const checkAvailability = async () => {
+  if (orderType.value !== 'RESERVATION' || !reservationDate.value) {
+    tablesWithAvailability.value = [...tables.value];
+    return;
+  }
+  try {
+    const res = await api.get(`/reservations/availability?date=${reservationDate.value}`);
+    tablesWithAvailability.value = res.data;
+  } catch (error) {
+    console.error('Failed to fetch availability:', error);
+  }
+};
+
+watch(orderType, () => {
+  checkAvailability();
 });
 
 const filteredMenus = computed(() => {
@@ -529,10 +564,12 @@ const submitOrder = async (payDirectly = false) => {
     else alert('Pilih meja terlebih dahulu');
     return;
   }
-  if (orderType.value === 'RESERVATION' && !selectedReservationId.value) {
-    if (cashierToast?.value) cashierToast.value.display('Pilih reservasi terlebih dahulu', 'error');
-    else alert('Pilih reservasi terlebih dahulu');
-    return;
+  if (orderType.value === 'RESERVATION') {
+    if (!reservationDate.value || !reservationTime.value) {
+      if (cashierToast?.value) cashierToast.value.display('Lengkapi tanggal dan jam', 'error');
+      else alert('Lengkapi tanggal dan jam');
+      return;
+    }
   }
   if (!customerNotes.value.trim()) {
     if (cashierToast?.value) cashierToast.value.display('Silakan isi Nama Pemesan', 'error');
@@ -563,25 +600,45 @@ const submitOrder = async (payDirectly = false) => {
     const newCartRes = await api.get('/cart');
     const cartId = newCartRes.data.id;
     
-    // 4. Place Order (customerNotes is stored in address field for now so it shows up)
-    const backendOrderType = orderType.value === 'RESERVATION' ? 'DINE_IN' : orderType.value;
-    
-    const newOrder = await orderStore.placeOrder(
-      cartId.toString(),
-      backendOrderType,
-      customerNotes.value, 
-      ['DINE_IN', 'RESERVATION'].includes(orderType.value) ? selectedTableId.value : undefined,
-      orderType.value === 'RESERVATION' ? selectedReservationId.value : undefined
-    );
-    
-    if (payDirectly) {
-      // Store created order and open modal
-      currentCreatedOrder.value = newOrder;
-      showPaymentModal.value = true;
-      cashReceived.value = Number(newOrder.totalPrice); // default to exact amount
+    // 4. Place Order or Reservation
+    let orderData = null;
+
+    if (orderType.value === 'RESERVATION') {
+      const combinedDate = new Date(`${reservationDate.value}T${reservationTime.value}:00`).toISOString();
+      // Use direct API for reservation to match backend create Reservation flow
+      const resPayload = {
+        name: customerNotes.value,
+        phone: '-', // Provide dummy or add input if needed
+        date: combinedDate,
+        guestCount: guestCount.value,
+        tableId: selectedTableId.value?.toString(),
+        paymentType: 'DP', // Default to DP for reservation, though they can pay direct
+        items: localCart.value.map(i => ({ menuId: i.menu.id.toString(), qty: i.qty, price: i.menu.price }))
+      };
+      
+      const response = await api.post('/reservations', resPayload);
+      
+      // Since it creates reservation + order, we need to fetch the newly created order
+      // We can get it from the reservation's orderId
+      if (response.data.orderId) {
+         orderData = await orderStore.getOrderById(response.data.orderId);
+      }
     } else {
-      // Just save to queue
-      if (cashierToast?.value) cashierToast.value.display('Pesanan berhasil masuk antrean!', 'success');
+      // Normal order
+      orderData = await orderStore.placeOrder(
+        cartId.toString(),
+        orderType.value,
+        customerNotes.value, 
+        selectedTableId.value
+      );
+    }
+    
+    if (payDirectly && orderData) {
+      currentCreatedOrder.value = orderData;
+      showPaymentModal.value = true;
+      cashReceived.value = Number(orderData.totalPrice); 
+    } else {
+      if (cashierToast?.value) cashierToast.value.display(orderType.value === 'RESERVATION' ? 'Reservasi berhasil dibuat!' : 'Pesanan berhasil masuk antrean!', 'success');
       router.push('/staff/cashier');
     }
 

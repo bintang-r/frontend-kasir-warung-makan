@@ -18,17 +18,39 @@
 
     <!-- Content -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden">
-      <!-- Tabs -->
-      <div class="flex items-center gap-2 px-8 py-4 border-b border-gray-50 bg-gray-50/50">
-        <button
-          v-for="status in ['ALL', 'PENDING', 'APPROVED', 'COMPLETED', 'REJECTED']"
-          :key="status"
-          @click="statusFilter = status"
-          class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-          :class="statusFilter === status ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:bg-white hover:text-gray-800'"
-        >
-          {{ status }}
-        </button>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-8 py-4 border-b border-gray-50 bg-gray-50/50">
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
+          <button
+            v-for="status in ['ALL', 'PENDING', 'APPROVED', 'COMPLETED', 'REJECTED']"
+            :key="status"
+            @click="statusFilter = status"
+            class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
+            :class="statusFilter === status ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:bg-white hover:text-gray-800'"
+          >
+            {{ status }}
+          </button>
+        </div>
+
+        <!-- Search & Sort Controls -->
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input 
+              type="text" 
+              v-model="searchQuery"
+              placeholder="Cari nama atau no hp..."
+              class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs font-bold outline-none focus:border-primary transition-all shadow-sm"
+            />
+          </div>
+          <select 
+            v-model="sortBy"
+            class="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:border-primary transition-all shadow-sm cursor-pointer"
+          >
+            <option value="dateAsc">Tgl Terdekat</option>
+            <option value="dateDesc">Tgl Terjauh</option>
+            <option value="createdAt">Paling Baru</option>
+          </select>
+        </div>
       </div>
 
       <!-- Table -->
@@ -45,7 +67,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            <tr v-for="res in filteredReservations" :key="res.id" class="hover:bg-gray-50/50 transition-colors">
+            <tr v-for="res in processedReservations" :key="res.id" class="hover:bg-gray-50/50 transition-colors">
               <td class="px-8 py-4">
                 <p class="text-xs font-black text-gray-900">{{ formatDate(res.date) }}</p>
                 <p class="text-[10px] font-bold text-gray-400">{{ formatTime(res.date) }}</p>
@@ -160,7 +182,7 @@
                 </span>
               </td>
             </tr>
-            <tr v-if="filteredReservations.length === 0">
+            <tr v-if="processedReservations.length === 0">
               <td colspan="6" class="py-24 text-center">
                 <div class="flex flex-col items-center opacity-20">
                   <i class="fa-regular fa-calendar-xmark text-5xl mb-4 text-gray-400"></i>
@@ -172,6 +194,39 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="px-8 py-4 border-t border-gray-50 bg-gray-50/30 flex items-center justify-between">
+        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+          Menampilkan {{ paginationStart }} - {{ paginationEnd }} dari {{ totalFiltered }}
+        </span>
+        <div class="flex items-center gap-1">
+          <button 
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-200 text-gray-500 hover:bg-white hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+          </button>
+          
+          <button 
+            v-for="page in totalPages" :key="page"
+            @click="currentPage = page"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all"
+            :class="currentPage === page ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-white hover:text-gray-900'"
+          >
+            {{ page }}
+          </button>
+
+          <button 
+            @click="currentPage++"
+            :disabled="currentPage === totalPages"
+            class="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-200 text-gray-500 hover:bg-white hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -193,7 +248,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { reservationService } from '../../services/reservation.service';
 import { getImageUrl } from '../../services/api';
 
@@ -201,6 +256,12 @@ const reservations = ref([]);
 const loading = ref(false);
 const statusFilter = ref('ALL');
 const previewImage = ref(null);
+
+// Search, Sort, Pagination states
+const searchQuery = ref('');
+const sortBy = ref('dateAsc');
+const currentPage = ref(1);
+const itemsPerPage = 10;
 
 const fetchReservations = async () => {
   loading.value = true;
@@ -215,8 +276,47 @@ const fetchReservations = async () => {
 };
 
 const filteredReservations = computed(() => {
-  if (statusFilter.value === 'ALL') return reservations.value;
-  return reservations.value.filter((r) => r.status === statusFilter.value);
+  let result = reservations.value;
+
+  // Filter by status
+  if (statusFilter.value !== 'ALL') {
+    result = result.filter((r) => r.status === statusFilter.value);
+  }
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase();
+    result = result.filter(r => 
+      r.name.toLowerCase().includes(q) || 
+      (r.phone && r.phone.includes(q))
+    );
+  }
+
+  // Sort
+  result = [...result].sort((a, b) => {
+    if (sortBy.value === 'dateAsc') return new Date(a.date) - new Date(b.date);
+    if (sortBy.value === 'dateDesc') return new Date(b.date) - new Date(a.date);
+    if (sortBy.value === 'createdAt') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0); // Assuming createdAt exists, else just sorts by id roughly
+    return 0;
+  });
+
+  return result;
+});
+
+const totalFiltered = computed(() => filteredReservations.value.length);
+const totalPages = computed(() => Math.ceil(totalFiltered.value / itemsPerPage) || 1);
+
+const processedReservations = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredReservations.value.slice(start, start + itemsPerPage);
+});
+
+const paginationStart = computed(() => totalFiltered.value === 0 ? 0 : (currentPage.value - 1) * itemsPerPage + 1);
+const paginationEnd = computed(() => Math.min(currentPage.value * itemsPerPage, totalFiltered.value));
+
+// Reset pagination on filter change
+watch([statusFilter, searchQuery, sortBy], () => {
+  currentPage.value = 1;
 });
 
 const updateStatus = async (id, status) => {
