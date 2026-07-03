@@ -43,12 +43,12 @@
             />
           </div>
           <select 
-            v-model="sortBy"
+            v-model="itemsPerPage"
             class="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:border-primary transition-all shadow-sm cursor-pointer"
           >
-            <option value="dateAsc">Tgl Terdekat</option>
-            <option value="dateDesc">Tgl Terjauh</option>
-            <option value="createdAt">Paling Baru</option>
+            <option :value="10">10 Baris</option>
+            <option :value="50">50 Baris</option>
+            <option :value="100">100 Baris</option>
           </select>
         </div>
       </div>
@@ -257,11 +257,10 @@ const loading = ref(false);
 const statusFilter = ref('ALL');
 const previewImage = ref(null);
 
-// Search, Sort, Pagination states
+// Search, Pagination states
 const searchQuery = ref('');
-const sortBy = ref('dateAsc');
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const itemsPerPage = ref(10);
 
 const fetchReservations = async () => {
   loading.value = true;
@@ -292,30 +291,27 @@ const filteredReservations = computed(() => {
     );
   }
 
-  // Sort
+  // Default sort by date
   result = [...result].sort((a, b) => {
-    if (sortBy.value === 'dateAsc') return new Date(a.date) - new Date(b.date);
-    if (sortBy.value === 'dateDesc') return new Date(b.date) - new Date(a.date);
-    if (sortBy.value === 'createdAt') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0); // Assuming createdAt exists, else just sorts by id roughly
-    return 0;
+    return new Date(b.date) - new Date(a.date); // Terjauh/Terbaru default
   });
 
   return result;
 });
 
 const totalFiltered = computed(() => filteredReservations.value.length);
-const totalPages = computed(() => Math.ceil(totalFiltered.value / itemsPerPage) || 1);
+const totalPages = computed(() => Math.ceil(totalFiltered.value / itemsPerPage.value) || 1);
 
 const processedReservations = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredReservations.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredReservations.value.slice(start, start + itemsPerPage.value);
 });
 
-const paginationStart = computed(() => totalFiltered.value === 0 ? 0 : (currentPage.value - 1) * itemsPerPage + 1);
-const paginationEnd = computed(() => Math.min(currentPage.value * itemsPerPage, totalFiltered.value));
+const paginationStart = computed(() => totalFiltered.value === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1);
+const paginationEnd = computed(() => Math.min(currentPage.value * itemsPerPage.value, totalFiltered.value));
 
 // Reset pagination on filter change
-watch([statusFilter, searchQuery, sortBy], () => {
+watch([statusFilter, searchQuery, itemsPerPage], () => {
   currentPage.value = 1;
 });
 
