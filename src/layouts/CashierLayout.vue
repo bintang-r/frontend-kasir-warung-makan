@@ -93,7 +93,7 @@
       </div>
 
       <!-- Spacer when middle is hidden -->
-      <div v-if="route.path === '/staff/cashier/pos'" class="flex-1"></div>
+      <div v-if="route.path !== '/staff/cashier'" class="flex-1"></div>
 
       <!-- Search + Date + Profile -->
       <div class="flex items-center gap-3 px-4 border-l border-gray-100 flex-shrink-0">
