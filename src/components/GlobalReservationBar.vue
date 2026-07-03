@@ -191,7 +191,16 @@ const submitReservation = async () => {
     
     // Save to local store for guest tracking
     if (response && response.id) {
-      reservationStore.addReservationId(response.id);
+      if (typeof reservationStore.addReservationId === 'function') {
+        reservationStore.addReservationId(response.id);
+      } else {
+        // Fallback if HMR didn't load the store update
+        const currentIds = JSON.parse(localStorage.getItem('myReservationIds') || '[]');
+        if (!currentIds.includes(response.id)) {
+          currentIds.push(response.id);
+          localStorage.setItem('myReservationIds', JSON.stringify(currentIds));
+        }
+      }
     }
     
     showSlide.value = false;

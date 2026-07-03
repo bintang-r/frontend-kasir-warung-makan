@@ -187,58 +187,53 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
   const isStaff = authStore.isStaff;
   const userRole = authStore.userRole;
 
+  const rolePathMap = {
+    ADMIN: '/staff/admin',
+    KASIR: '/staff/cashier',
+    KITCHEN: '/staff/kitchen',
+    DRIVER: '/staff/admin',
+  };
+
   // 1. Handling Public/Universal Login paths
   if (to.name === 'Login' || to.name === 'Register' || to.name === 'Home') {
     if (isAuthenticated) {
       if (isStaff) {
-        if (userRole === 'SUPERADMIN' || userRole === 'ADMIN') return next({ path: '/staff/admin' });
-        return next({ path: rolePathMap[userRole] || '/staff/admin' });
+        if (userRole === 'SUPERADMIN' || userRole === 'ADMIN') return { path: '/staff/admin' };
+        return { path: rolePathMap[userRole] || '/staff/admin' };
       }
-      if (to.name !== 'Home') return next({ name: 'Menu' });
+      if (to.name !== 'Home') return { name: 'Menu' };
     }
-    return next();
+    return true;
   }
 
   // 2. Handling Protected Staff routes
   if (to.path.startsWith('/staff')) {
-    if (!isAuthenticated) return next({ name: 'Login' });
-    if (!isStaff) return next({ name: 'Home' }); // Customer blocked from staff area
+    if (!isAuthenticated) return { name: 'Login' };
+    if (!isStaff) return { name: 'Home' }; // Customer blocked from staff area
 
     // Strict sub-role checking
     if (to.meta.role && userRole !== to.meta.role && userRole !== 'SUPERADMIN') {
-      const rolePathMap = {
-        ADMIN: '/staff/admin',
-        KASIR: '/staff/cashier',
-        KITCHEN: '/staff/kitchen',
-        DRIVER: '/staff/admin',
-      };
-      return next({ path: rolePathMap[userRole] || '/staff/admin' });
+      return { path: rolePathMap[userRole] || '/staff/admin' };
     }
-    return next();
+    return true;
   }
 
   // 3. Handling Protected Customer routes
   const customerRoutes = ['Cart', 'Checkout', 'OrderHistory', 'Profile', 'OrderPayment'];
   if (customerRoutes.includes(to.name)) {
-    if (!isAuthenticated && !authStore.isGuest) return next({ name: 'Login' });
+    if (!isAuthenticated && !authStore.isGuest) return { name: 'Login' };
     if (isStaff) {
-      const rolePathMap = {
-        ADMIN: '/staff/admin',
-        KASIR: '/staff/cashier',
-        KITCHEN: '/staff/kitchen',
-        DRIVER: '/staff/admin',
-      };
-      return next({ path: rolePathMap[userRole] || '/staff/admin' });
+      return { path: rolePathMap[userRole] || '/staff/admin' };
     }
   }
 
-  next();
+  return true;
 });
 
 export default router;
