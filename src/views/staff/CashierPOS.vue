@@ -119,6 +119,13 @@
             
             <!-- Reservation Fields -->
             <div v-if="orderType === 'RESERVATION'" class="animate-in fade-in slide-in-from-top-2 mb-4 space-y-4">
+               <div>
+                 <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                   <i class="fa-solid fa-phone"></i> Nomor Ponsel (HP)
+                 </p>
+                 <input type="tel" v-model="customerPhone" placeholder="Contoh: 08123456789" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all focus:bg-white focus:ring-4 focus:ring-primary/5" />
+               </div>
+
                <div class="grid grid-cols-2 gap-4">
                  <div>
                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
@@ -434,6 +441,7 @@ const selectedCategory = ref(null);
 const orderType = ref('DINE_IN');
 const selectedTableId = ref(null);
 const customerNotes = ref('');
+const customerPhone = ref('');
 
 // Reservation specific state
 const today = new Date().toISOString().split('T')[0];
@@ -570,6 +578,11 @@ const submitOrder = async (payDirectly = false) => {
       else alert('Lengkapi tanggal dan jam');
       return;
     }
+    if (!customerPhone.value.trim()) {
+      if (cashierToast?.value) cashierToast.value.display('Silakan isi Nomor Ponsel', 'error');
+      else alert('Silakan isi Nomor Ponsel');
+      return;
+    }
   }
   if (!customerNotes.value.trim()) {
     if (cashierToast?.value) cashierToast.value.display('Silakan isi Nama Pemesan', 'error');
@@ -608,7 +621,7 @@ const submitOrder = async (payDirectly = false) => {
       // Use direct API for reservation to match backend create Reservation flow
       const resPayload = {
         name: customerNotes.value,
-        phone: '-', // Provide dummy or add input if needed
+        phone: customerPhone.value,
         date: combinedDate,
         guestCount: guestCount.value,
         tableId: selectedTableId.value?.toString(),
