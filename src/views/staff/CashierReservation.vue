@@ -83,17 +83,33 @@
                     </span>
                   </div>
                   
-                  <!-- Proof of Payment Thumbnail -->
-                  <div v-if="res.paymentProof" class="mt-2 flex items-center gap-2">
-                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Bukti ({{ res.paymentType }}):</span>
-                    <div 
-                      @click="previewImage = res.paymentProof"
-                      class="w-12 h-8 rounded border border-gray-200 overflow-hidden shadow-sm cursor-pointer hover:border-primary transition-colors bg-gray-50 flex items-center justify-center relative group"
-                    >
-                      <img :src="getImageUrl(res.paymentProof)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px]">
-                        <i class="fa-solid fa-eye"></i>
+                  <!-- Proof of Payment Thumbnail + Button -->
+                  <div v-if="res.paymentProof" class="mt-2 flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Bukti ({{ res.paymentType }}):</span>
+                      <span 
+                        class="text-[9px] font-black px-1.5 py-0.5 rounded"
+                        :class="res.paymentType === 'FULL' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'"
+                      >
+                        {{ res.paymentType === 'FULL' ? 'LUNAS' : 'DP 50%' }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div 
+                        @click="previewImage = res.paymentProof"
+                        class="w-12 h-8 rounded border border-gray-200 overflow-hidden shadow-sm cursor-pointer hover:border-primary transition-colors bg-gray-50 flex items-center justify-center relative group flex-shrink-0"
+                      >
+                        <img :src="getImageUrl(res.paymentProof)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px]">
+                          <i class="fa-solid fa-eye"></i>
+                        </div>
                       </div>
+                      <button
+                        @click="previewImage = res.paymentProof"
+                        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all"
+                      >
+                        <i class="fa-solid fa-eye text-[8px]"></i> Lihat Bukti
+                      </button>
                     </div>
                   </div>
                 </div>

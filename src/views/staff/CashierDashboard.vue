@@ -437,6 +437,12 @@
               >Rp {{ formatPrice(currentOrder.totalPrice) }}</span
             >
           </div>
+          <div v-if="getPaidAmount(currentOrder) > 0" class="flex justify-between items-center text-emerald-600">
+            <span class="text-xs font-bold uppercase tracking-widest">Telah Dibayar (DP)</span>
+            <span class="text-xs font-black"
+              >- Rp {{ formatPrice(getPaidAmount(currentOrder)) }}</span
+            >
+          </div>
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-gray-400">PPN (0%)</span>
             <span class="text-sm font-bold text-gray-400">Rp 0</span>
@@ -446,10 +452,10 @@
           >
             <span
               class="text-sm font-black text-gray-900 uppercase tracking-tight"
-              >TOTAL</span
+              >{{ getPaidAmount(currentOrder) > 0 ? "SISA TAGIHAN" : "TOTAL" }}</span
             >
             <span class="text-2xl font-black text-gray-900"
-              >Rp {{ formatPrice(currentOrder.totalPrice) }}</span
+              >Rp {{ formatPrice(amountOwed(currentOrder)) }}</span
             >
           </div>
         </div>
@@ -510,10 +516,10 @@
             <p
               class="text-[9px] font-black text-white/30 uppercase tracking-widest"
             >
-              Pembayaran
+              Sisa Tagihan
             </p>
             <h3 class="text-3xl font-black mt-1 tracking-tighter">
-              Rp {{ formatPrice(currentOrder.totalPrice) }}
+              Rp {{ formatPrice(currentOrderOwed) }}
             </h3>
             <p class="text-white/30 text-[10px] font-bold mt-2">
               Order #{{ currentOrder.id }} ·
@@ -1063,11 +1069,26 @@ const totalNonCashToday = computed(() =>
 );
 
 // ── Payment helpers ────────────────────────────────────────────────────
-const hasUnpaid = (order) =>
-  order?.payments?.some((p) => p.status === "UNPAID");
+const getPaidAmount = (order) => {
+  if (!order || !order.payments) return 0;
+  return order.payments
+    .filter(p => p.status === 'PAID')
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+};
+
+const amountOwed = (order) => {
+  if (!order) return 0;
+  return Math.max(0, Number(order.totalPrice) - getPaidAmount(order));
+};
+
+const hasUnpaid = (order) => {
+  return amountOwed(order) > 0.01;
+};
+
+const currentOrderOwed = computed(() => amountOwed(currentOrder.value));
 
 const change = computed(
-  () => cashReceived.value - Number(currentOrder.value?.totalPrice || 0),
+  () => cashReceived.value - currentOrderOwed.value,
 );
 
 const paymentMethods = [
@@ -1097,7 +1118,7 @@ const numpadKeys = [
 ];
 
 const quickCash = computed(() => {
-  const t = Number(currentOrder.value?.totalPrice || 0);
+  const t = currentOrderOwed.value;
   const round = (v) => Math.ceil(v / 10000) * 10000;
   return [
     round(t),
@@ -1139,9 +1160,10 @@ const orderStatusClass = (s) =>
 // ── Process payment ────────────────────────────────────────────────────
 const processPayment = async () => {
   if (!currentOrder.value) return;
+  const owed = currentOrderOwed.value;
   if (
     selectedMethod.value === "CASH" &&
-    cashReceived.value < Number(currentOrder.value.totalPrice)
+    cashReceived.value < owed
   )
     return;
 
@@ -1152,7 +1174,7 @@ const processPayment = async () => {
     await api.post("/payments", {
       orderId: orderToProcess.id.toString(),
       method: selectedMethod.value,
-      amount: orderToProcess.totalPrice,
+      amount: owed,
     });
 
     // Capture success snapshots for the receipt
@@ -1162,7 +1184,7 @@ const processPayment = async () => {
       received: cashReceived.value,
       change:
         selectedMethod.value === "CASH"
-          ? cashReceived.value - Number(orderToProcess.totalPrice)
+          ? cashReceived.value - owed
           : 0,
     };
 
