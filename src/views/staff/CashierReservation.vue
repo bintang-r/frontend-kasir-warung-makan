@@ -248,9 +248,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, inject } from 'vue';
 import { reservationService } from '../../services/reservation.service';
 import { getImageUrl } from '../../services/api';
+
+const fetchPendingReservations = inject('fetchPendingReservations', () => {});
 
 const reservations = ref([]);
 const loading = ref(false);
@@ -323,6 +325,8 @@ const updateStatus = async (id, status) => {
     if (index !== -1) {
       reservations.value[index].status = status;
     }
+    // Update layout badge immediately
+    fetchPendingReservations();
   } catch (error) {
     console.error('Failed to update status', error);
     alert('Gagal mengupdate status reservasi');

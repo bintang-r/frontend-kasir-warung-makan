@@ -199,7 +199,10 @@ const selectedOrderId = ref(null);
 const orders = ref([]);
 const searchQuery = ref('');
 const cashierToast = ref(null);
+const pendingReservationsCount = ref(0);
 provide('cashierToast', cashierToast);
+provide('pendingReservationsCount', pendingReservationsCount);
+provide('fetchPendingReservations', fetchPendingReservations);
 
 // Current clock
 const now = ref(new Date());
@@ -251,7 +254,8 @@ const fetchOrders = async () => {
   }
 };
 
-const pendingReservationsCount = ref(0);
+// Will be provided below
+// const pendingReservationsCount = ref(0);
 const fetchPendingReservations = async () => {
   try {
     const res = await api.get('/reservations');
